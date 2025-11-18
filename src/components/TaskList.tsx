@@ -1,6 +1,7 @@
 import { Task, TaskStatus } from '../types/task';
 import { TaskCard } from './TaskCard';
-import { useState, useTransition, useDeferredValue } from 'react';
+import { Pagination } from './Pagination';
+import { useState, useTransition, useDeferredValue, useCallback } from 'react';
 
 interface TaskListProps {
   tasks: Task[];
@@ -23,6 +24,7 @@ export const TaskList = ({
     'createdAt' | 'dueDate' | 'priority' | 'title'
   >('createdAt');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [paginationRange, setPaginationRange] = useState({ start: 0, end: 5 });
   const [, startTransition] = useTransition();
   const deferredSearchQuery = useDeferredValue(searchQuery);
   const isStale = searchQuery !== deferredSearchQuery;
@@ -68,6 +70,19 @@ export const TaskList = ({
 
     return sortOrder === 'desc' ? -comparison : comparison;
   });
+
+  // Get paginated tasks
+  const paginatedTasks = sortedTasks.slice(
+    paginationRange.start,
+    paginationRange.end
+  );
+
+  // Handle pagination changes
+  const handlePaginate = useCallback((startIndex: number, endIndex: number) => {
+    startTransition(() => {
+      setPaginationRange({ start: startIndex, end: endIndex });
+    });
+  }, []);
 
   if (sortedTasks.length === 0) {
     let message = 'No tasks found';
@@ -158,7 +173,7 @@ export const TaskList = ({
           isStale ? 'opacity-60' : 'opacity-100'
         }`}
       >
-        {sortedTasks.map((task) => (
+        {paginatedTasks.map((task) => (
           <TaskCard
             key={task.id}
             task={task}
@@ -168,6 +183,8 @@ export const TaskList = ({
           />
         ))}
       </div>
+
+      <Pagination totalItems={sortedTasks.length} onPaginate={handlePaginate} />
     </div>
   );
 };

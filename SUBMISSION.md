@@ -301,15 +301,84 @@ Used vitest with @testing-library/react for rendering and interactions. Combined
 **Component Integration:**
 
 - TaskCard components rendered for each task
-- Callbacks (onUpdateTask, onDeleteTask) passed to TaskCard
+- Callbacks (onUpdateTask, onDeleteTask, onEditTask) passed to TaskCard
+- Pagination integration with correct totalItems count
 - Grid layout with responsive columns (1/2/3 columns)
 
 **Testing Approach:**
-Used vitest with @testing-library/react for component rendering and DOM queries. Simulated user interactions with userEvent for button clicks. Verified sorting behavior by extracting task titles in rendered order and comparing with expected sequences. Tested edge cases like tasks without due dates (sorted as Infinity). Used container queries to verify CSS grid classes for responsive layout.
+Used vitest with @testing-library/react for component rendering and DOM queries. Simulated user interactions with userEvent for button clicks. Verified sorting behavior by extracting task titles in rendered order and comparing with expected sequences. Tested edge cases like tasks without due dates (sorted as Infinity). Used container queries to verify CSS grid classes for responsive layout. Verified pagination integration through callback pattern.
 
 ---
 
-### Test Suite #5: useTasks Hook Tests
+### Test Suite #5: Pagination Component Tests
+
+**Location:** `src/components/Pagination.spec.tsx`
+
+**Coverage:** 18 comprehensive tests covering:
+
+**Rendering Tests:**
+
+- No rendering when totalItems fit on one page (totalPages <= 1)
+- Pagination controls render when multiple pages needed
+- All navigation buttons present (First, Previous, Next, Last)
+- Page number buttons for direct navigation
+- Items per page dropdown with all options (5, 10, 20, 50)
+- Total items count display with custom itemsLabel
+- Ellipsis display for many pages (>5 pages)
+
+**Initial State Tests:**
+
+- onPaginate callback invoked on component mount
+- Correct initial pagination indices (startIndex: 0, endIndex: 5)
+- Default currentPage set to 1
+- Default itemsPerPage set to 5
+
+**Navigation Tests:**
+
+- Next button navigates to next page
+- Previous button navigates to previous page
+- Page number buttons navigate to specific pages
+- First button navigates to page 1
+- Last button navigates to last page
+- All page buttons navigate correctly in sequence
+
+**Disabled State Tests:**
+
+- Previous and First buttons disabled on page 1
+- Next and Last buttons disabled on last page
+- All navigation buttons enabled on middle pages
+
+**Items Per Page Tests:**
+
+- Changing items per page updates pagination
+- Page resets to 1 when items per page changes
+- onPaginate called with new indices after change
+- All dropdown options work correctly (5, 10, 20, 50)
+
+**Current Page Highlighting:**
+
+- Active page button has blue background (bg-blue-500)
+- Inactive page buttons have gray background
+- Current page number shown prominently
+
+**Dynamic Updates Tests:**
+
+- Pagination updates when totalItems increases
+- Pagination updates when totalItems decreases
+- Page resets to last valid page when currentPage exceeds new totalPages
+- Component responds to external totalItems changes
+
+**Custom Props Tests:**
+
+- Custom itemsLabel displays correctly (e.g., "items" instead of "tasks")
+- Flexible component reuse across different contexts
+
+**Testing Approach:**
+Used vitest with @testing-library/react for component rendering and user interactions. Mock callback function (vi.fn()) to verify onPaginate invocations with correct arguments. Simulated user clicks with @testing-library/user-event for navigation buttons, page numbers, and dropdown selections. Verified button disabled states using DOM queries. Tested dynamic totalItems changes by re-rendering with different props. Verified CSS classes for styling and visual feedback. All tests ensure pagination component works standalone without parent dependencies.
+
+---
+
+### Test Suite #6: useTasks Hook Tests
 
 **Location:** `src/hooks/useTasks.spec.ts`
 
@@ -365,26 +434,27 @@ Used vitest with @testing-library/react's renderHook for testing custom hooks. M
 
 ### Test Summary
 
-**Total Tests:** 151 tests (149 implemented + 2 existing)
+**Total Tests:** 169 tests (167 implemented + 2 existing)
 
 - TaskCard: 15 tests ✓
 - TaskFilter: 15 tests ✓
 - TaskForm: 42 tests ✓
 - TaskList: 24 tests ✓
+- **Pagination: 18 tests ✓** (NEW)
 - useTasks: 20 tests ✓
 - taskHelpers: 32 tests ✓
 - App: 3 tests ✓ (including 1 comprehensive integration test)
 
-**Test Results:** All 151 tests passing
+**Test Results:** All 169 tests passing
 
 **Test Duration:** ~9 seconds
 
 **Code Coverage:**
 
-- Statements: 100% (745/745)
-- Branches: 97.09% (401/413)
-- Functions: 92.45% (49/53)
-- Lines: 100% (745/745)
+- Statements: 100% (873/873)
+- Branches: 97.58% (444/455)
+- Functions: 93.54% (58/62)
+- Lines: 100% (873/873)
 
 **Coverage Areas:**
 
@@ -398,6 +468,9 @@ Used vitest with @testing-library/react's renderHook for testing custom hooks. M
 - Async storage operations (load/save)
 - Error handling and recovery
 - Complete user workflow integration (create → edit → delete)
+- **Pagination navigation and state management**
+- **Dynamic pagination updates and resets**
+- **Items per page selection and page calculations**
 
 **Key Testing Patterns Used:**
 
@@ -576,7 +649,9 @@ Implemented a comprehensive edit functionality that allows users to modify exist
 - Non-destructive - can cancel without losing changes
 - Keyboard shortcuts (ESC to close) for power users
 
----**Missing Functionality:**
+---
+
+**Missing Functionality:**
 
 - No input field for users to add tags to tasks
 - Tags array was always empty in form submissions
@@ -625,6 +700,156 @@ Implemented a comprehensive edit functionality that allows users to modify exist
 
 **Result:**
 Users can now fully manage task tags through an intuitive interface with keyboard-friendly input (Enter to add) and mouse-friendly removal (click × button). Tags are properly persisted with tasks and displayed consistently throughout the application.
+
+---
+
+### Feature #4: Task Pagination
+
+**Details:**
+Implemented a comprehensive pagination system to handle large task lists efficiently. The original application displayed all tasks on a single page, which would cause performance issues and poor user experience when managing dozens or hundreds of tasks. The pagination feature provides a professional, reusable solution with complete control over page navigation and items per page.
+
+**Implementation:**
+
+**New Component - Pagination.tsx:**
+
+- Created fully self-contained, reusable pagination component
+- Manages all internal state (currentPage, itemsPerPage)
+- Calculates totalPages, startIndex, endIndex internally
+- Automatically resets to page 1 when items per page changes
+- Resets to last valid page when totalItems decrease
+- Scrolls to top on page navigation for better UX
+
+**Component Architecture:**
+
+**Props Interface:**
+
+```typescript
+interface PaginationProps {
+  totalItems: number; // Total count of items to paginate
+  onPaginate: (startIndex: number, endIndex: number) => void; // Callback for pagination changes
+  itemsLabel?: string; // Optional custom label (default: "tasks")
+}
+```
+
+**Internal State Management:**
+
+- `currentPage`: Tracks active page (default: 1)
+- `itemsPerPage`: Items displayed per page (default: 5)
+- Automatic calculations: `totalPages`, `startIndex`, `endIndex`
+- `useEffect`: Notifies parent via onPaginate callback
+- `useEffect`: Auto-resets page when exceeds new total
+
+**UI Features:**
+
+**Navigation Controls:**
+
+- First Page button (⟪) - Jump to page 1
+- Previous Page button (←) - Go back one page
+- Page number buttons - Direct page navigation
+- Ellipsis (...) for large page counts (shows 5 pages max)
+- Next Page button (→) - Go forward one page
+- Last Page button (⟫) - Jump to last page
+
+**Smart Button States:**
+
+- First/Previous buttons disabled on page 1
+- Next/Last buttons disabled on last page
+- Current page highlighted with blue background
+- Inactive pages have hover effects
+- Disabled buttons show gray background with cursor-not-allowed
+
+**Items Per Page Selector:**
+
+- Dropdown with options: 5, 10, 20, 50 items per page
+- Automatically resets to page 1 when changed
+- Displays current selection prominently
+- Shows total item count with custom label
+
+**Visual Design:**
+
+- Clean, modern interface with Tailwind CSS
+- Responsive layout with proper spacing
+- Accessible button labels (aria-label)
+- Smooth transitions and hover effects
+- Consistent styling across all controls
+
+**Integration with TaskList:**
+
+**TaskList Component Updates:**
+
+- Removed internal pagination state (currentPage, itemsPerPage)
+- Added `paginationRange` state: `{ start: 0, end: 5 }`
+- Implemented `handlePaginate` callback with useCallback
+- Receives startIndex and endIndex from Pagination component
+- Uses `startTransition` for non-blocking pagination updates
+- Slices sorted tasks: `sortedTasks.slice(start, end)`
+- Renders Pagination component below task grid
+
+**Callback Pattern:**
+
+````typescript
+const handlePaginate = useCallback(
+  (startIndex: number, endIndex: number) => {
+    startTransition(() => {
+      setPaginationRange({ start: startIndex, end: endIndex });
+    });
+  },
+  []
+);
+
+<Pagination
+  totalItems={sortedTasks.length}
+  onPaginate={handlePaginate}
+  itemsLabel="tasks"
+/>```
+
+**Performance Optimizations:**
+
+- Self-contained state prevents unnecessary parent re-renders
+- useCallback ensures stable callback references
+- useTransition makes pagination non-blocking
+- Conditional rendering (returns null when totalPages <= 1)
+- Efficient slice operations on sorted arrays
+- Scroll-to-top prevents confusion on page changes
+
+**User Workflow:**
+
+1. User views first 5 tasks by default
+2. Click page numbers or navigation buttons to change pages
+3. Change items per page dropdown to view more/fewer tasks
+4. Page resets automatically when filter/search changes task count
+5. Scroll position resets to top on page navigation
+6. Last page accessible even if partially filled
+
+**Technical Highlights:**
+
+- Truly reusable component with minimal props
+- No prop drilling - parent only provides total count
+- Clean separation of concerns (UI vs data)
+- Type-safe with TypeScript interfaces
+- Comprehensive edge case handling
+- Accessibility features (aria-labels, keyboard navigation)
+
+**Edge Cases Handled:**
+
+- TotalItems < itemsPerPage: Pagination hidden (returns null)
+- TotalItems changes dynamically: Updates pagination automatically
+- Current page exceeds new total: Resets to last valid page
+- Empty task list: No pagination displayed
+- Filtered results: Pagination adjusts to filtered count
+- Many pages (20+): Ellipsis prevents UI overflow
+
+**User Benefits:**
+
+- Improved performance with large task lists (100+ tasks)
+- Professional UI with clear navigation controls
+- Flexible viewing options (5, 10, 20, 50 items per page)
+- No confusion with automatic scroll-to-top
+- Intuitive navigation matching common pagination patterns
+- Responsive design works on all screen sizes
+- Smooth, non-blocking page transitions
+
+---
 
 ## Code refactoring and performance Improvements
 
@@ -700,7 +925,7 @@ const [description, setDescription] = useState('');
 
 <input value={title} onChange={(e) => setTitle(e.target.value)} />;
 // Re-renders on every keystroke
-```
+````
 
 **After (Form Actions):**
 
@@ -1218,11 +1443,12 @@ The React Compiler works synergistically with:
 **Module-Level Coverage:**
 
 - **App (app.tsx):** 100% statements, 96.15% branches, 72.72% functions
-- **Components:** 100% statements, 96.95% branches, 97.14% functions
+- **Components:** 100% statements, 97.40% branches, 97.14% functions
   - TaskCard: 100% across all metrics
   - TaskFilter: 100% statements, 90.47% branches
   - TaskForm: 100% statements, 99.21% branches
-  - TaskList: 100% statements, 96.66% branches, 88.88% functions
+  - TaskList: 100% statements, 95.83% branches, 83.33% functions
+  - **Pagination: 100% across all metrics** (NEW)
   - Dialog: 100% statements, 83.33% branches
 - **Hooks (useTasks):** 100% across all metrics
 - **Utils (taskHelpers):** 100% across all metrics
@@ -1289,6 +1515,7 @@ The React Compiler works synergistically with:
 - TaskFilter.spec.tsx: 15 tests
 - TaskForm.spec.tsx: 42 tests
 - TaskList.spec.tsx: 24 tests
+- **Pagination.spec.tsx: 18 tests** (NEW)
 - useTasks.spec.ts: 20 tests
 - taskHelpers.spec.ts: 32 tests
 - app.spec.tsx: 3 tests (including 1 comprehensive integration test)
