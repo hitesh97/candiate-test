@@ -1,4 +1,5 @@
 import { Task } from '../types/task';
+import React from 'react';
 
 interface TaskCardProps {
   task: Task;
@@ -33,7 +34,12 @@ export const TaskCard = ({ task, onUpdate, onDelete }: TaskCardProps) => {
 
   const formatDate = (dateString?: string) => {
     if (!dateString) return 'No due date';
-    return dateString; // Should format to readable date
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-GB', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    });
   };
 
   return (
@@ -64,7 +70,7 @@ export const TaskCard = ({ task, onUpdate, onDelete }: TaskCardProps) => {
 
       <div className="text-sm text-gray-500 mb-3">
         <p>Due: {formatDate(task.dueDate)}</p>
-        <p>Created: {new Date(task.createdAt).toLocaleDateString()}</p>
+        <p>Created: {formatDate(task.createdAt)}</p>
       </div>
 
       {task.tags && task.tags.length > 0 && (
