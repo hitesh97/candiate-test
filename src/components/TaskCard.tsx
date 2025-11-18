@@ -8,24 +8,39 @@ interface TaskCardProps {
   onEdit?: (task: Task) => void;
 }
 
+// Move static objects outside component to prevent recreation
+const PRIORITY_COLORS = {
+  low: 'bg-green-100 text-green-800',
+  medium: 'bg-yellow-100 text-yellow-800',
+  high: 'bg-red-100 text-red-800',
+} as const;
+
+const STATUS_COLORS = {
+  todo: 'bg-gray-100 text-gray-800',
+  'in-progress': 'bg-blue-100 text-blue-800',
+  done: 'bg-green-100 text-green-800',
+} as const;
+
+const STATUS_CYCLE: Task['status'][] = ['todo', 'in-progress', 'done'];
+
+// Optimize date formatting with Intl.DateTimeFormat
+const dateFormatter = new Intl.DateTimeFormat('en-GB', {
+  year: 'numeric',
+  month: 'short',
+  day: 'numeric',
+});
+
+const formatDate = (dateString?: string): string => {
+  if (!dateString) return 'No due date';
+  return dateFormatter.format(new Date(dateString));
+};
+
 export const TaskCard = ({
   task,
   onUpdate,
   onDelete,
   onEdit,
 }: TaskCardProps) => {
-  const priorityColors = {
-    low: 'bg-green-100 text-green-800',
-    medium: 'bg-yellow-100 text-yellow-800',
-    high: 'bg-red-100 text-red-800',
-  };
-
-  const statusColors = {
-    todo: 'bg-gray-100 text-gray-800',
-    'in-progress': 'bg-blue-100 text-blue-800',
-    done: 'bg-green-100 text-green-800',
-  };
-
   const handleDelete = () => {
     onDelete(task.id);
   };
@@ -37,21 +52,10 @@ export const TaskCard = ({
   };
 
   const handleStatusToggle = () => {
-    const statuses: Task['status'][] = ['todo', 'in-progress', 'done'];
-    const currentIndex = statuses.indexOf(task.status);
-    const nextIndex = (currentIndex + 1) % statuses.length;
-    const nextStatus = statuses[nextIndex];
+    const currentIndex = STATUS_CYCLE.indexOf(task.status);
+    const nextIndex = (currentIndex + 1) % STATUS_CYCLE.length;
+    const nextStatus = STATUS_CYCLE[nextIndex];
     onUpdate(task.id, { status: nextStatus });
-  };
-
-  const formatDate = (dateString?: string) => {
-    if (!dateString) return 'No due date';
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-GB', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-    });
   };
 
   return (
@@ -63,14 +67,14 @@ export const TaskCard = ({
         <div className="flex gap-2 flex-wrap">
           <span
             className={`px-2 py-1 text-xs rounded-full ${
-              priorityColors[task.priority]
+              PRIORITY_COLORS[task.priority]
             }`}
           >
             {task.priority}
           </span>
           <span
             className={`px-2 py-1 text-xs rounded-full ${
-              statusColors[task.status]
+              STATUS_COLORS[task.status]
             }`}
           >
             {task.status}
