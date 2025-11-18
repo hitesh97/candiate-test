@@ -1,6 +1,6 @@
 import { Task, TaskStatus } from '../types/task';
 import { TaskCard } from './TaskCard';
-import { useState } from 'react';
+import { useState, useTransition, useDeferredValue } from 'react';
 
 interface TaskListProps {
   tasks: Task[];
@@ -23,6 +23,9 @@ export const TaskList = ({
     'createdAt' | 'dueDate' | 'priority' | 'title'
   >('createdAt');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [, startTransition] = useTransition();
+  const deferredSearchQuery = useDeferredValue(searchQuery);
+  const isStale = searchQuery !== deferredSearchQuery;
 
   let filteredTasks = tasks;
 
@@ -30,8 +33,8 @@ export const TaskList = ({
     filteredTasks = filteredTasks.filter((task) => task.status === filter);
   }
 
-  if (searchQuery) {
-    const lowerQuery = searchQuery.toLowerCase();
+  if (deferredSearchQuery) {
+    const lowerQuery = deferredSearchQuery.toLowerCase();
     filteredTasks = filteredTasks.filter(
       (task) =>
         task.title.toLowerCase().includes(lowerQuery) ||
@@ -73,8 +76,8 @@ export const TaskList = ({
     if (tasks.length === 0) {
       message = 'No tasks yet';
       suggestion = 'Click "Add New Task" to create your first task!';
-    } else if (searchQuery) {
-      message = `No tasks match "${searchQuery}"`;
+    } else if (deferredSearchQuery) {
+      message = `No tasks match "${deferredSearchQuery}"`;
       suggestion = 'Try a different search term';
     } else if (filter !== 'all') {
       message = `No tasks with status: ${filter}`;
@@ -97,7 +100,7 @@ export const TaskList = ({
           <label className="text-sm font-medium text-gray-700">Sort by:</label>
           <div className="flex flex-wrap gap-2">
             <button
-              onClick={() => setSortBy('createdAt')}
+              onClick={() => startTransition(() => setSortBy('createdAt'))}
               className={`px-3 py-1 text-sm rounded ${
                 sortBy === 'createdAt'
                   ? 'bg-blue-500 text-white'
@@ -107,7 +110,7 @@ export const TaskList = ({
               Created Date
             </button>
             <button
-              onClick={() => setSortBy('dueDate')}
+              onClick={() => startTransition(() => setSortBy('dueDate'))}
               className={`px-3 py-1 text-sm rounded ${
                 sortBy === 'dueDate'
                   ? 'bg-blue-500 text-white'
@@ -117,7 +120,7 @@ export const TaskList = ({
               Due Date
             </button>
             <button
-              onClick={() => setSortBy('priority')}
+              onClick={() => startTransition(() => setSortBy('priority'))}
               className={`px-3 py-1 text-sm rounded ${
                 sortBy === 'priority'
                   ? 'bg-blue-500 text-white'
@@ -127,7 +130,7 @@ export const TaskList = ({
               Priority
             </button>
             <button
-              onClick={() => setSortBy('title')}
+              onClick={() => startTransition(() => setSortBy('title'))}
               className={`px-3 py-1 text-sm rounded ${
                 sortBy === 'title'
                   ? 'bg-blue-500 text-white'
@@ -137,7 +140,11 @@ export const TaskList = ({
               Title
             </button>
             <button
-              onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
+              onClick={() =>
+                startTransition(() =>
+                  setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')
+                )
+              }
               className="px-3 py-1 text-sm rounded bg-gray-200 text-gray-700 hover:bg-gray-300"
             >
               {sortOrder === 'asc' ? '↑ Asc' : '↓ Desc'}
@@ -146,7 +153,11 @@ export const TaskList = ({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div
+        className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 transition-opacity duration-150 ${
+          isStale ? 'opacity-60' : 'opacity-100'
+        }`}
+      >
         {sortedTasks.map((task) => (
           <TaskCard
             key={task.id}
