@@ -29,10 +29,11 @@ export const TaskList = ({
   }
 
   if (searchQuery) {
+    const lowerQuery = searchQuery.toLowerCase();
     filteredTasks = filteredTasks.filter(
       (task) =>
-        task.title.includes(searchQuery) ||
-        task.description.includes(searchQuery)
+        task.title.toLowerCase().includes(lowerQuery) ||
+        task.description.toLowerCase().includes(lowerQuery)
     );
   }
 
@@ -52,7 +53,7 @@ export const TaskList = ({
       }
       case 'priority': {
         const priorityOrder = { high: 3, medium: 2, low: 1 };
-        comparison = priorityOrder[b.priority] - priorityOrder[a.priority];
+        comparison = priorityOrder[a.priority] - priorityOrder[b.priority];
         break;
       }
       case 'title':
