@@ -1,5 +1,5 @@
 import { Task, TaskStatus, TaskPriority } from '../types/task';
-import React, { useState, useRef, useActionState } from 'react';
+import React, { useState, useActionState } from 'react';
 
 interface TaskFormProps {
   onSubmit: (task: Omit<Task, 'id' | 'createdAt'>) => void;
@@ -26,20 +26,25 @@ export const TaskForm = ({
   initialTask,
   onCancel,
 }: TaskFormProps) => {
+  // Controlled form state
+  const [title, setTitle] = useState(initialTask?.title || '');
+  const [description, setDescription] = useState(
+    initialTask?.description || ''
+  );
+  const [status, setStatus] = useState<TaskStatus>(
+    initialTask?.status || 'todo'
+  );
+  const [priority, setPriority] = useState<TaskPriority>(
+    initialTask?.priority || 'medium'
+  );
+  const [dueDate, setDueDate] = useState(initialTask?.dueDate || '');
   const [tags, setTags] = useState<string[]>(initialTask?.tags || []);
   const [tagInput, setTagInput] = useState('');
-  const formRef = useRef<HTMLFormElement>(null);
 
   const handleFormAction = async (
     prevState: FormState,
     formData: FormData
   ): Promise<FormState> => {
-    const title = formData.get('title') as string;
-    const description = formData.get('description') as string;
-    const status = formData.get('status') as TaskStatus;
-    const priority = formData.get('priority') as TaskPriority;
-    const dueDate = formData.get('dueDate') as string;
-
     // Validate required fields
     const newErrors = { title: '', description: '', dueDate: '' };
     if (!title?.trim()) {
@@ -65,11 +70,16 @@ export const TaskForm = ({
       tags,
     };
 
-    onSubmit(task);
+    // Call onSubmit and wait for it to complete
+    await Promise.resolve(onSubmit(task));
 
-    // Reset form
+    // Reset form only on successful submission in Add mode
     if (!initialTask) {
-      formRef.current?.reset();
+      setTitle('');
+      setDescription('');
+      setStatus('todo');
+      setPriority('medium');
+      setDueDate('');
       setTags([]);
       setTagInput('');
     }
@@ -101,11 +111,7 @@ export const TaskForm = ({
   };
 
   return (
-    <form
-      ref={formRef}
-      action={formAction}
-      className="bg-white p-6 rounded-lg shadow-md"
-    >
+    <form action={formAction} className="bg-white p-6 rounded-lg shadow-md">
       <div className="mb-4">
         <label
           htmlFor="title"
@@ -117,7 +123,8 @@ export const TaskForm = ({
           type="text"
           id="title"
           name="title"
-          defaultValue={initialTask?.title || ''}
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
           className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 ${
             formState.errors.title
               ? 'border-red-500 focus:ring-red-500'
@@ -140,7 +147,8 @@ export const TaskForm = ({
         <textarea
           id="description"
           name="description"
-          defaultValue={initialTask?.description || ''}
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
           rows={3}
           className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 ${
             formState.errors.description
@@ -167,7 +175,8 @@ export const TaskForm = ({
           <select
             id="status"
             name="status"
-            defaultValue={initialTask?.status || 'todo'}
+            value={status}
+            onChange={(e) => setStatus(e.target.value as TaskStatus)}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value="todo">To Do</option>
@@ -186,7 +195,8 @@ export const TaskForm = ({
           <select
             id="priority"
             name="priority"
-            defaultValue={initialTask?.priority || 'medium'}
+            value={priority}
+            onChange={(e) => setPriority(e.target.value as TaskPriority)}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value="low">Low</option>
@@ -208,7 +218,8 @@ export const TaskForm = ({
             type="date"
             id="dueDate"
             name="dueDate"
-            defaultValue={initialTask?.dueDate || ''}
+            value={dueDate}
+            onChange={(e) => setDueDate(e.target.value)}
             className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 ${
               formState.errors.dueDate
                 ? 'border-red-500 focus:ring-red-500'

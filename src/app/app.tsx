@@ -130,6 +130,7 @@ export function App() {
       >
         {editingTask && (
           <TaskForm
+            key={editingTask.id}
             initialTask={editingTask}
             onSubmit={handleEditSubmit}
             onCancel={() => setEditingTask(null)}
