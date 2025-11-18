@@ -1,5 +1,5 @@
 import { Task, TaskStatus, TaskPriority } from '../types/task';
-import { useState } from 'react';
+import React, { useState } from 'react';
 
 interface TaskFormProps {
   onSubmit: (task: Omit<Task, 'id' | 'createdAt'>) => void;
@@ -23,17 +23,25 @@ export const TaskForm = ({
     initialTask?.priority || 'medium'
   );
   const [dueDate, setDueDate] = useState(initialTask?.dueDate || '');
+  const [tags, setTags] = useState<string[]>(initialTask?.tags || []);
+  const [tagInput, setTagInput] = useState('');
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
+    // Validate required fields
+    if (!title.trim()) {
+      alert('Title is required');
+      return;
+    }
+
     const task = {
-      title,
-      description,
+      title: title.trim(),
+      description: description.trim(),
       status,
       priority,
       dueDate: dueDate || undefined,
-      tags: [],
+      tags,
     };
 
     onSubmit(task);
@@ -44,6 +52,23 @@ export const TaskForm = ({
     setStatus('todo');
     setPriority('medium');
     setDueDate('');
+    setTags([]);
+    setTagInput('');
+  };
+
+  const handleTagInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const trimmedTag = tagInput.trim();
+      if (trimmedTag && !tags.includes(trimmedTag)) {
+        setTags([...tags, trimmedTag]);
+        setTagInput('');
+      }
+    }
+  };
+
+  const removeTag = (tagToRemove: string) => {
+    setTags(tags.filter((tag) => tag !== tagToRemove));
   };
 
   return (
@@ -126,23 +151,63 @@ export const TaskForm = ({
         </div>
       </div>
 
-      <div className="mb-4">
-        <label
-          htmlFor="dueDate"
-          className="block text-sm font-medium text-gray-700 mb-2"
-        >
-          Due Date
-        </label>
-        <input
-          type="date"
-          id="dueDate"
-          name="dueDate"
-          value={dueDate}
-          onChange={(e) => setDueDate(e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
-      </div>
+      <div className="grid grid-cols-2 gap-4 mb-8">
+        <div>
+          <label
+            htmlFor="dueDate"
+            className="block text-sm font-medium text-gray-700 mb-2"
+          >
+            Due Date
+          </label>
+          <input
+            type="date"
+            id="dueDate"
+            name="dueDate"
+            value={dueDate}
+            onChange={(e) => setDueDate(e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
 
+        <div>
+          <label
+            htmlFor="tags"
+            className="block text-sm font-medium text-gray-700 mb-2"
+          >
+            Tags
+          </label>
+          <input
+            type="text"
+            id="tags"
+            name="tags"
+            value={tagInput}
+            onChange={(e) => setTagInput(e.target.value)}
+            onKeyDown={handleTagInputKeyDown}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="Type a tag and press Enter"
+          />
+          {tags.length > 0 && (
+            <div className="flex gap-2 flex-wrap mt-2">
+              {tags.map((tag, index) => (
+                <span
+                  key={index}
+                  className="inline-flex items-center gap-1 bg-gray-200 text-gray-700 px-3 py-1 rounded-full text-sm"
+                >
+                  #{tag}
+                  <button
+                    type="button"
+                    onClick={() => removeTag(tag)}
+                    className="hover:text-red-600 focus:outline-none"
+                    aria-label={`Remove tag ${tag}`}
+                  >
+                    ×
+                  </button>
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
       <div className="flex gap-2">
         <button
           type="submit"
