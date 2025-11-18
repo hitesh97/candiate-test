@@ -1,5 +1,5 @@
 import { Task, TaskStatus, TaskPriority } from '../types/task';
-import React, { useState } from 'react';
+import React, { useState, useRef, useActionState } from 'react';
 
 interface TaskFormProps {
   onSubmit: (task: Omit<Task, 'id' | 'createdAt'>) => void;
@@ -7,39 +7,45 @@ interface TaskFormProps {
   onCancel?: () => void;
 }
 
+interface FormState {
+  errors: {
+    title: string;
+    description: string;
+    dueDate: string;
+  };
+  success: boolean;
+}
+
+const initialFormState: FormState = {
+  errors: { title: '', description: '', dueDate: '' },
+  success: false,
+};
+
 export const TaskForm = ({
   onSubmit,
   initialTask,
   onCancel,
 }: TaskFormProps) => {
-  const [title, setTitle] = useState(initialTask?.title || '');
-  const [description, setDescription] = useState(
-    initialTask?.description || ''
-  );
-  const [status, setStatus] = useState<TaskStatus>(
-    initialTask?.status || 'todo'
-  );
-  const [priority, setPriority] = useState<TaskPriority>(
-    initialTask?.priority || 'medium'
-  );
-  const [dueDate, setDueDate] = useState(initialTask?.dueDate || '');
   const [tags, setTags] = useState<string[]>(initialTask?.tags || []);
   const [tagInput, setTagInput] = useState('');
-  const [errors, setErrors] = useState({
-    title: '',
-    description: '',
-    dueDate: '',
-  });
+  const formRef = useRef<HTMLFormElement>(null);
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const handleFormAction = async (
+    prevState: FormState,
+    formData: FormData
+  ): Promise<FormState> => {
+    const title = formData.get('title') as string;
+    const description = formData.get('description') as string;
+    const status = formData.get('status') as TaskStatus;
+    const priority = formData.get('priority') as TaskPriority;
+    const dueDate = formData.get('dueDate') as string;
 
     // Validate required fields
     const newErrors = { title: '', description: '', dueDate: '' };
-    if (!title.trim()) {
+    if (!title?.trim()) {
       newErrors.title = 'Title is required';
     }
-    if (!description.trim()) {
+    if (!description?.trim()) {
       newErrors.description = 'Description is required';
     }
     if (!dueDate) {
@@ -47,8 +53,7 @@ export const TaskForm = ({
     }
 
     if (newErrors.title || newErrors.description || newErrors.dueDate) {
-      setErrors(newErrors);
-      return;
+      return { errors: newErrors, success: false };
     }
 
     const task = {
@@ -63,15 +68,22 @@ export const TaskForm = ({
     onSubmit(task);
 
     // Reset form
-    setTitle('');
-    setDescription('');
-    setStatus('todo');
-    setPriority('medium');
-    setDueDate('');
-    setTags([]);
-    setTagInput('');
-    setErrors({ title: '', description: '', dueDate: '' });
+    if (!initialTask) {
+      formRef.current?.reset();
+      setTags([]);
+      setTagInput('');
+    }
+
+    return {
+      errors: { title: '', description: '', dueDate: '' },
+      success: true,
+    };
   };
+
+  const [formState, formAction] = useActionState(
+    handleFormAction,
+    initialFormState
+  );
 
   const handleTagInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
@@ -89,7 +101,11 @@ export const TaskForm = ({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow-md">
+    <form
+      ref={formRef}
+      action={formAction}
+      className="bg-white p-6 rounded-lg shadow-md"
+    >
       <div className="mb-4">
         <label
           htmlFor="title"
@@ -101,20 +117,16 @@ export const TaskForm = ({
           type="text"
           id="title"
           name="title"
-          value={title}
-          onChange={(e) => {
-            setTitle(e.target.value);
-            if (errors.title) setErrors({ ...errors, title: '' });
-          }}
+          defaultValue={initialTask?.title || ''}
           className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 ${
-            errors.title
+            formState.errors.title
               ? 'border-red-500 focus:ring-red-500'
               : 'border-gray-300 focus:ring-blue-500'
           }`}
           placeholder="Enter task title"
         />
-        {errors.title && (
-          <p className="mt-1 text-sm text-red-600">{errors.title}</p>
+        {formState.errors.title && (
+          <p className="mt-1 text-sm text-red-600">{formState.errors.title}</p>
         )}
       </div>
 
@@ -128,21 +140,19 @@ export const TaskForm = ({
         <textarea
           id="description"
           name="description"
-          value={description}
-          onChange={(e) => {
-            setDescription(e.target.value);
-            if (errors.description) setErrors({ ...errors, description: '' });
-          }}
+          defaultValue={initialTask?.description || ''}
           rows={3}
           className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 ${
-            errors.description
+            formState.errors.description
               ? 'border-red-500 focus:ring-red-500'
               : 'border-gray-300 focus:ring-blue-500'
           }`}
           placeholder="Enter task description"
         />
-        {errors.description && (
-          <p className="mt-1 text-sm text-red-600">{errors.description}</p>
+        {formState.errors.description && (
+          <p className="mt-1 text-sm text-red-600">
+            {formState.errors.description}
+          </p>
         )}
       </div>
 
@@ -157,8 +167,7 @@ export const TaskForm = ({
           <select
             id="status"
             name="status"
-            value={status}
-            onChange={(e) => setStatus(e.target.value as TaskStatus)}
+            defaultValue={initialTask?.status || 'todo'}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value="todo">To Do</option>
@@ -177,8 +186,7 @@ export const TaskForm = ({
           <select
             id="priority"
             name="priority"
-            value={priority}
-            onChange={(e) => setPriority(e.target.value as TaskPriority)}
+            defaultValue={initialTask?.priority || 'medium'}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value="low">Low</option>
@@ -200,19 +208,17 @@ export const TaskForm = ({
             type="date"
             id="dueDate"
             name="dueDate"
-            value={dueDate}
-            onChange={(e) => {
-              setDueDate(e.target.value);
-              if (errors.dueDate) setErrors({ ...errors, dueDate: '' });
-            }}
+            defaultValue={initialTask?.dueDate || ''}
             className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 ${
-              errors.dueDate
+              formState.errors.dueDate
                 ? 'border-red-500 focus:ring-red-500'
                 : 'border-gray-300 focus:ring-blue-500'
             }`}
           />
-          {errors.dueDate && (
-            <p className="mt-1 text-sm text-red-600">{errors.dueDate}</p>
+          {formState.errors.dueDate && (
+            <p className="mt-1 text-sm text-red-600">
+              {formState.errors.dueDate}
+            </p>
           )}
         </div>
 

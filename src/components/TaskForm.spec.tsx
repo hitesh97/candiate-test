@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import { TaskForm } from './TaskForm';
 import { Task } from '../types/task';
@@ -279,37 +279,7 @@ describe('TaskForm', () => {
     expect(screen.getByText('Due date is required')).toBeDefined();
   });
 
-  it('should clear error message when user starts typing in title field', async () => {
-    const user = userEvent.setup();
-    render(<TaskForm onSubmit={mockOnSubmit} />);
-
-    const titleInput = screen.getByLabelText(/title/i);
-    const submitButton = screen.getByRole('button', { name: /add task/i });
-
-    await user.click(submitButton);
-    expect(screen.getByText('Title is required')).toBeDefined();
-
-    await user.type(titleInput, 'T');
-    expect(screen.queryByText('Title is required')).toBeNull();
-  });
-
-  it('should clear error message when user starts typing in description field', async () => {
-    const user = userEvent.setup();
-    render(<TaskForm onSubmit={mockOnSubmit} />);
-
-    const titleInput = screen.getByLabelText(/title/i);
-    const descriptionInput = screen.getByLabelText(/description/i);
-    const submitButton = screen.getByRole('button', { name: /add task/i });
-
-    await user.type(titleInput, 'Valid Title');
-    await user.click(submitButton);
-    expect(screen.getByText('Description is required')).toBeDefined();
-
-    await user.type(descriptionInput, 'D');
-    expect(screen.queryByText('Description is required')).toBeNull();
-  });
-
-  it('should clear error message when user selects a due date', async () => {
+  it('should clear error message on resubmission with valid title', async () => {
     const user = userEvent.setup();
     render(<TaskForm onSubmit={mockOnSubmit} />);
 
@@ -318,15 +288,65 @@ describe('TaskForm', () => {
     const dueDateInput = screen.getByLabelText(/due date/i);
     const submitButton = screen.getByRole('button', { name: /add task/i });
 
+    // First submission - shows error
+    await user.click(submitButton);
+    expect(screen.getByText('Title is required')).toBeDefined();
+
+    // Type in title and resubmit - error should clear
+    await user.type(titleInput, 'Valid Title');
+    await user.type(descriptionInput, 'Valid Description');
+    fireEvent.change(dueDateInput, { target: { value: '2025-12-25' } });
+    await user.click(submitButton);
+    expect(screen.queryByText('Title is required')).toBeNull();
+    expect(mockOnSubmit).toHaveBeenCalled();
+  });
+
+  it('should clear error message on resubmission with valid description', async () => {
+    const user = userEvent.setup();
+    render(<TaskForm onSubmit={mockOnSubmit} />);
+
+    const titleInput = screen.getByLabelText(/title/i);
+    const descriptionInput = screen.getByLabelText(/description/i);
+    const dueDateInput = screen.getByLabelText(/due date/i);
+    const submitButton = screen.getByRole('button', { name: /add task/i });
+
+    // First submission with only title - shows description error
+    await user.type(titleInput, 'Valid Title');
+    await user.click(submitButton);
+    expect(screen.getByText('Description is required')).toBeDefined();
+
+    // Add description and resubmit - error should clear
+    await user.type(descriptionInput, 'Valid Description');
+    fireEvent.change(dueDateInput, { target: { value: '2025-12-25' } });
+    await user.click(submitButton);
+
+    await waitFor(() => {
+      expect(screen.queryByText('Description is required')).toBeNull();
+    });
+  });
+  it('should clear error message on resubmission with valid due date', async () => {
+    const user = userEvent.setup();
+    render(<TaskForm onSubmit={mockOnSubmit} />);
+
+    const titleInput = screen.getByLabelText(/title/i);
+    const descriptionInput = screen.getByLabelText(/description/i);
+    const dueDateInput = screen.getByLabelText(/due date/i);
+    const submitButton = screen.getByRole('button', { name: /add task/i });
+
+    // First submission without due date - shows error
     await user.type(titleInput, 'Valid Title');
     await user.type(descriptionInput, 'Valid Description');
     await user.click(submitButton);
     expect(screen.getByText('Due date is required')).toBeDefined();
 
+    // Add due date and resubmit - error should clear
     fireEvent.change(dueDateInput, { target: { value: '2025-12-25' } });
-    expect(screen.queryByText('Due date is required')).toBeNull();
-  });
+    await user.click(submitButton);
 
+    await waitFor(() => {
+      expect(screen.queryByText('Due date is required')).toBeNull();
+    });
+  });
   it('should show red border on fields with errors', async () => {
     const user = userEvent.setup();
     render(<TaskForm onSubmit={mockOnSubmit} />);
