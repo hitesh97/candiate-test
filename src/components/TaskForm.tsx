@@ -25,13 +25,29 @@ export const TaskForm = ({
   const [dueDate, setDueDate] = useState(initialTask?.dueDate || '');
   const [tags, setTags] = useState<string[]>(initialTask?.tags || []);
   const [tagInput, setTagInput] = useState('');
+  const [errors, setErrors] = useState({
+    title: '',
+    description: '',
+    dueDate: '',
+  });
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     // Validate required fields
+    const newErrors = { title: '', description: '', dueDate: '' };
     if (!title.trim()) {
-      alert('Title is required');
+      newErrors.title = 'Title is required';
+    }
+    if (!description.trim()) {
+      newErrors.description = 'Description is required';
+    }
+    if (!dueDate) {
+      newErrors.dueDate = 'Due date is required';
+    }
+
+    if (newErrors.title || newErrors.description || newErrors.dueDate) {
+      setErrors(newErrors);
       return;
     }
 
@@ -54,6 +70,7 @@ export const TaskForm = ({
     setDueDate('');
     setTags([]);
     setTagInput('');
+    setErrors({ title: '', description: '', dueDate: '' });
   };
 
   const handleTagInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -78,17 +95,27 @@ export const TaskForm = ({
           htmlFor="title"
           className="block text-sm font-medium text-gray-700 mb-2"
         >
-          Title
+          Title <span className="text-red-500">*</span>
         </label>
         <input
           type="text"
           id="title"
           name="title"
           value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          onChange={(e) => {
+            setTitle(e.target.value);
+            if (errors.title) setErrors({ ...errors, title: '' });
+          }}
+          className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 ${
+            errors.title
+              ? 'border-red-500 focus:ring-red-500'
+              : 'border-gray-300 focus:ring-blue-500'
+          }`}
           placeholder="Enter task title"
         />
+        {errors.title && (
+          <p className="mt-1 text-sm text-red-600">{errors.title}</p>
+        )}
       </div>
 
       <div className="mb-4">
@@ -96,17 +123,27 @@ export const TaskForm = ({
           htmlFor="description"
           className="block text-sm font-medium text-gray-700 mb-2"
         >
-          Description
+          Description <span className="text-red-500">*</span>
         </label>
         <textarea
           id="description"
           name="description"
           value={description}
-          onChange={(e) => setDescription(e.target.value)}
+          onChange={(e) => {
+            setDescription(e.target.value);
+            if (errors.description) setErrors({ ...errors, description: '' });
+          }}
           rows={3}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 ${
+            errors.description
+              ? 'border-red-500 focus:ring-red-500'
+              : 'border-gray-300 focus:ring-blue-500'
+          }`}
           placeholder="Enter task description"
         />
+        {errors.description && (
+          <p className="mt-1 text-sm text-red-600">{errors.description}</p>
+        )}
       </div>
 
       <div className="grid grid-cols-2 gap-4 mb-4">
@@ -157,16 +194,26 @@ export const TaskForm = ({
             htmlFor="dueDate"
             className="block text-sm font-medium text-gray-700 mb-2"
           >
-            Due Date
+            Due Date <span className="text-red-500">*</span>
           </label>
           <input
             type="date"
             id="dueDate"
             name="dueDate"
             value={dueDate}
-            onChange={(e) => setDueDate(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            onChange={(e) => {
+              setDueDate(e.target.value);
+              if (errors.dueDate) setErrors({ ...errors, dueDate: '' });
+            }}
+            className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 ${
+              errors.dueDate
+                ? 'border-red-500 focus:ring-red-500'
+                : 'border-gray-300 focus:ring-blue-500'
+            }`}
           />
+          {errors.dueDate && (
+            <p className="mt-1 text-sm text-red-600">{errors.dueDate}</p>
+          )}
         </div>
 
         <div>

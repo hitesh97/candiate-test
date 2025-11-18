@@ -74,10 +74,10 @@ Changed the Created date to use the same formatDate() helper function, ensuring 
 **Location:** `src/components/TaskForm.tsx`
 
 **Issue:**
-The task form had no validation, allowing submission with empty title and description fields. This created broken tasks with no content, cluttering the task list with useless entries and degrading data quality. No user feedback was provided for invalid submissions.
+The task form had minimal validation, only checking if title was empty and showing a basic alert. There was no validation for description or due date fields, allowing submission of incomplete tasks. The alert-based validation was disruptive and provided poor user experience. No visual indicators showed which fields were required, and there was no inline error feedback.
 
 **Solution:**
-Added validation to check if title is empty before submission, displaying an alert if required fields are missing. Implemented string trimming for title and description to remove whitespace, preventing creation of tasks with only spaces and ensuring data quality.
+Implemented comprehensive inline form validation with error state management. All three fields (title, description, due date) are now required and validated on submission. Visual feedback includes red asterisks (\*) marking required fields, red borders on invalid inputs, and inline error messages that appear below fields. Errors clear automatically when users start typing or selecting, providing a smooth, professional user experience. Replaced alert dialogs with non-intrusive inline validation messages. String trimming for title and description prevents whitespace-only submissions.
 
 ---
 
@@ -191,7 +191,7 @@ Used vitest with fake timers (vi.useFakeTimers) to test debounce behavior accura
 
 **Location:** `src/components/TaskForm.spec.tsx`
 
-**Coverage:** 36 comprehensive tests covering:
+**Coverage:** 42 comprehensive tests covering:
 
 **Rendering Tests:**
 
@@ -239,8 +239,15 @@ Used vitest with fake timers (vi.useFakeTimers) to test debounce behavior accura
 
 **Validation Tests:**
 
-- Empty title prevented from submission with alert
-- Whitespace-only title prevented from submission with alert
+- Error message display for empty title
+- Error message display for whitespace-only title
+- Error message display for empty description
+- Error message display for whitespace-only description
+- Error message display for empty due date
+- Error clearing when user types in title field
+- Error clearing when user types in description field
+- Error clearing when user selects a due date
+- Red border styling on fields with errors
 - onSubmit NOT called when validation fails
 
 **Event Handler Tests:**
@@ -249,7 +256,7 @@ Used vitest with fake timers (vi.useFakeTimers) to test debounce behavior accura
 - Mock functions verified for proper invocation
 
 **Testing Approach:**
-Used vitest with @testing-library/react for rendering and interactions. Combined fireEvent for direct DOM manipulation (select/date inputs, keyboard events) and userEvent for realistic typing simulations. Mocked window.alert with vi.spyOn for validation testing. Verified form data structure with expect.objectContaining() for flexible assertions. Created separate test cases for create mode (no initialTask) and edit mode (with initialTask). Tested tag addition with Enter key, tag removal with click events, and duplicate prevention logic.
+Used vitest with @testing-library/react for rendering and interactions. Combined fireEvent for direct DOM manipulation (select/date inputs, keyboard events) and userEvent for realistic typing simulations. Verified inline error messages appear in DOM using screen.getByText() and disappear using screen.queryByText(). Tested CSS class changes for red borders on validation errors. Verified form data structure with expect.objectContaining() for flexible assertions. Created separate test cases for create mode (no initialTask) and edit mode (with initialTask). Tested tag addition with Enter key, tag removal with click events, and duplicate prevention logic. All tests updated to include required fields for successful submissions.
 
 ---
 
@@ -358,16 +365,16 @@ Used vitest with @testing-library/react's renderHook for testing custom hooks. M
 
 ### Test Summary
 
-**Total Tests:** 112 tests (110 implemented + 2 existing)
+**Total Tests:** 118 tests (116 implemented + 2 existing)
 
 - TaskCard: 15 tests ✓
 - TaskFilter: 15 tests ✓
-- TaskForm: 36 tests ✓
+- TaskForm: 42 tests ✓
 - TaskList: 24 tests ✓
 - useTasks: 20 tests ✓
 - App: 2 tests ✓
 
-**Test Results:** All 112 tests passing
+**Test Results:** All 118 tests passing
 **Test Duration:** ~5 seconds
 **Coverage Areas:**
 
@@ -393,7 +400,70 @@ Used vitest with @testing-library/react's renderHook for testing custom hooks. M
 
 ## Features Implemented
 
-### Feature #1: Task Tags Management
+### Feature #1: Enhanced Form Validation
+
+**Details:**
+Implemented comprehensive inline form validation for the TaskForm component, replacing the basic alert-based validation with a professional user experience. The original implementation only validated the title field with a simple alert, providing poor user feedback and no validation for description or due date fields.
+
+**Implementation:**
+
+**Validation State Management:**
+
+- Added `errors` state object to track validation errors for title, description, and dueDate fields
+- Each field has its own error message that displays conditionally
+
+**Visual Feedback:**
+
+- Required fields marked with red asterisk (\*) next to labels
+- Error messages appear below fields in red text when validation fails
+- Input/textarea borders turn red when there's an error
+- Borders change to blue focus ring when field is valid
+
+**Validation Rules:**
+
+- **Title**: Required field, cannot be empty or whitespace-only
+- **Description**: Required field, cannot be empty or whitespace-only
+- **Due Date**: Required field, must have a date selected
+
+**User Experience:**
+
+- Real-time error clearing: errors disappear as soon as user starts typing/selecting
+- Non-blocking validation: users see errors inline without alert dialogs
+- Clear visual indicators of which fields need attention
+- Professional and intuitive error handling
+
+**Test Coverage:**
+Added 9 new comprehensive tests for validation functionality:
+
+- Error message display for empty title
+- Error message display for whitespace-only title
+- Error message display for empty description
+- Error message display for whitespace-only description
+- Error message display for empty due date
+- Error clearing when user types in title field
+- Error clearing when user types in description field
+- Error clearing when user selects a due date
+- Red border styling on fields with errors
+
+Updated 7 existing tests to accommodate required fields:
+
+- Modified all submission tests to include required due date
+- Removed obsolete alert-based validation tests
+- Updated tag-related tests to include all required fields
+
+**Total Test Count:** TaskForm test suite now has 42 tests (up from 36), all passing
+
+**User Benefits:**
+
+- Better user experience with inline validation feedback
+- Clear indication of required fields before submission
+- No disruptive alert dialogs interrupting workflow
+- Visual feedback helps users quickly identify and fix issues
+- Professional, modern form validation UX
+
+---
+
+### Feature #2: Task Tags Management
 
 **Details:**
 Implemented a comprehensive tagging system for tasks, allowing users to categorize and organize their tasks with custom labels. The feature was missing from the original implementation where the Task type included a `tags` property, but the TaskForm component had hardcoded empty arrays for tags without any user interface for managing them.
@@ -429,7 +499,7 @@ Added 14 comprehensive tests for the tags functionality:
 
 ---
 
-### Feature #2: Edit Task Dialog
+### Feature #3: Edit Task Dialog
 
 **Details:**
 Implemented a comprehensive edit functionality that allows users to modify existing tasks through a modal dialog interface. This feature was completely missing from the original application - users could only create new tasks, change their status, or delete them, but had no way to edit task details after creation.
