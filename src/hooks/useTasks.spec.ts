@@ -20,7 +20,7 @@ describe('useTasks', () => {
     );
 
     // Mock console.error to avoid noise in test output
-    vi.spyOn(console, 'error').mockImplementation(() => {});
+    vi.spyOn(console, 'error').mockImplementation(vi.fn());
   });
 
   afterEach(() => {
@@ -90,7 +90,7 @@ describe('useTasks', () => {
   });
 
   it('should handle non-array data from storage', async () => {
-    mockLoadTasksFromStorage.mockResolvedValue(null as any);
+    mockLoadTasksFromStorage.mockResolvedValue(null as unknown as Task[]);
 
     const { result } = renderHook(() => useTasks());
 
@@ -532,7 +532,9 @@ describe('useTasks', () => {
     unmount();
 
     // Resolve after unmount - should not cause errors
-    resolveLoad!([]);
+    if (resolveLoad) {
+      resolveLoad([]);
+    }
 
     // Wait a bit to ensure no state updates happen
     await new Promise((resolve) => setTimeout(resolve, 10));

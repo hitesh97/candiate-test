@@ -6,7 +6,8 @@
   "scripts": {
     "start": "nx serve",
     "build": "nx build",
-    "test": "nx test --coverage"
+    "test": "nx test --coverage",
+    "lint": "nx lint"
   },
   "nx": {
     "includedScripts": []

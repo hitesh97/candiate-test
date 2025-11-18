@@ -1329,6 +1329,42 @@ The React Compiler works synergistically with:
 
 ---
 
+## Project Maintenance
+
+### Code Quality
+
+**Linting:**
+
+- ESLint configured with TypeScript and React rules
+- All linting errors fixed (16 errors, 11 warnings resolved)
+- Run linting: `npm run lint`
+- Clean codebase with zero ESLint violations
+
+**Fixes Applied:**
+
+- Removed unused eslint-disable directives
+- Fixed React Hook dependency arrays (added missing dependencies)
+- Replaced empty arrow functions with vi.fn() in tests
+- Replaced 'any' types with proper TypeScript types (unknown, Record<string, unknown>)
+- Replaced non-null assertions with proper null checks
+- Added proper if/else blocks for null-safe operations
+
+**Code Standards:**
+
+- TypeScript strict mode enabled
+- Consistent code formatting with Prettier
+- React 19 best practices followed
+- Modern React patterns (Hooks, Form Actions, Concurrent Features)
+
+### Scripts Available
+
+- `npm start` - Start development server
+- `npm run build` - Build production bundle
+- `npm test` - Run tests with coverage
+- `npm run lint` - Run ESLint checks
+
+---
+
 ## AI Tool Usage
 
 ### Tools Used

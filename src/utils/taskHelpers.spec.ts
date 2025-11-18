@@ -80,9 +80,7 @@ describe('taskHelpers', () => {
 
     it('should handle invalid JSON data gracefully', async () => {
       localStorage.setItem(STORAGE_KEY, 'invalid json');
-      const consoleSpy = vi
-        .spyOn(console, 'error')
-        .mockImplementation(() => {});
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(vi.fn());
 
       const result = await loadTasksFromStorage();
 
@@ -103,9 +101,7 @@ describe('taskHelpers', () => {
     });
 
     it('should handle localStorage errors gracefully', async () => {
-      const consoleSpy = vi
-        .spyOn(console, 'error')
-        .mockImplementation(() => {});
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(vi.fn());
       vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
         throw new Error('Storage error');
       });
@@ -160,7 +156,9 @@ describe('taskHelpers', () => {
 
       const stored = localStorage.getItem(STORAGE_KEY);
       expect(stored).toBeTruthy();
-      expect(JSON.parse(stored!)).toEqual(mockTasks);
+      if (stored) {
+        expect(JSON.parse(stored)).toEqual(mockTasks);
+      }
     });
 
     it('should save empty array to localStorage', async () => {
@@ -168,7 +166,9 @@ describe('taskHelpers', () => {
 
       const stored = localStorage.getItem(STORAGE_KEY);
       expect(stored).toBe('[]');
-      expect(JSON.parse(stored!)).toEqual([]);
+      if (stored) {
+        expect(JSON.parse(stored)).toEqual([]);
+      }
     });
 
     it('should overwrite existing tasks in localStorage', async () => {
@@ -177,15 +177,15 @@ describe('taskHelpers', () => {
       await saveTasksToStorage(mockTasks);
 
       const stored = localStorage.getItem(STORAGE_KEY);
-      const parsed = JSON.parse(stored!);
-      expect(parsed.length).toBe(3);
-      expect(parsed).toEqual(mockTasks);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        expect(parsed.length).toBe(3);
+        expect(parsed).toEqual(mockTasks);
+      }
     });
 
     it('should handle localStorage errors gracefully', async () => {
-      const consoleSpy = vi
-        .spyOn(console, 'error')
-        .mockImplementation(() => {});
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(vi.fn());
       vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
         throw new Error('Storage full');
       });
@@ -208,7 +208,9 @@ describe('taskHelpers', () => {
       await promise;
 
       const stored = localStorage.getItem(STORAGE_KEY);
-      expect(JSON.parse(stored!)).toEqual(mockTasks);
+      if (stored) {
+        expect(JSON.parse(stored)).toEqual(mockTasks);
+      }
     });
 
     it('should save tasks with all properties', async () => {
@@ -226,10 +228,12 @@ describe('taskHelpers', () => {
       await saveTasksToStorage([complexTask]);
 
       const stored = localStorage.getItem(STORAGE_KEY);
-      const parsed = JSON.parse(stored!);
-      expect(parsed[0]).toEqual(complexTask);
-      expect(parsed[0].title).toContain('@#$%');
-      expect(parsed[0].description).toContain('\n');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        expect(parsed[0]).toEqual(complexTask);
+        expect(parsed[0].title).toContain('@#$%');
+        expect(parsed[0].description).toContain('\n');
+      }
     });
 
     it('should resolve without returning a value', async () => {
@@ -239,12 +243,10 @@ describe('taskHelpers', () => {
     });
 
     it('should handle JSON serialization errors gracefully', async () => {
-      const consoleSpy = vi
-        .spyOn(console, 'error')
-        .mockImplementation(() => {});
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(vi.fn());
 
       // Create circular reference to cause JSON.stringify to fail
-      const circularTask: any = {
+      const circularTask: Record<string, unknown> = {
         id: '1',
         title: 'Circular',
         description: 'test',

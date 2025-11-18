@@ -16,7 +16,6 @@ export const useTasks = () => {
           setTasks(Array.isArray(loadedTasks) ? loadedTasks : []);
         }
       } catch (err) {
-        // eslint-disable-next-line no-console
         console.error('Failed to load tasks from storage', err);
         if (!aborted) setTasks([]);
       } finally {
@@ -59,7 +58,6 @@ export const useTasks = () => {
       try {
         await saveTasksToStorage(tasks);
       } catch (err) {
-        // eslint-disable-next-line no-console
         console.error('Failed to save tasks to storage', err);
       }
     })();
