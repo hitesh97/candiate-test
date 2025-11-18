@@ -3,13 +3,15 @@ import { useTasks } from '../hooks/useTasks';
 import { TaskForm } from '../components/TaskForm';
 import { TaskList } from '../components/TaskList';
 import { TaskFilter } from '../components/TaskFilter';
-import { TaskStatus } from '../types/task';
+import { Dialog } from '../components/Dialog';
+import { TaskStatus, Task } from '../types/task';
 
 export function App() {
   const { tasks, loading, addTask, updateTask, deleteTask } = useTasks();
   const [showForm, setShowForm] = useState(false);
   const [filter, setFilter] = useState<TaskStatus | 'all'>('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [editingTask, setEditingTask] = useState<Task | null>(null);
 
   const stats = useMemo(() => {
     const total = tasks.length;
@@ -25,6 +27,17 @@ export function App() {
       completionRate: total > 0 ? (done / total) * 100 : 0,
     };
   }, [tasks]);
+
+  const handleEditTask = (task: Task) => {
+    setEditingTask(task);
+  };
+
+  const handleEditSubmit = (updatedTask: Omit<Task, 'id' | 'createdAt'>) => {
+    if (editingTask) {
+      updateTask(editingTask.id, updatedTask);
+      setEditingTask(null);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -105,8 +118,24 @@ export function App() {
           searchQuery={searchQuery}
           onUpdateTask={updateTask}
           onDeleteTask={deleteTask}
+          onEditTask={handleEditTask}
         />
       </main>
+
+      {/* Edit Task Dialog */}
+      <Dialog
+        isOpen={editingTask !== null}
+        onClose={() => setEditingTask(null)}
+        title="Edit Task"
+      >
+        {editingTask && (
+          <TaskForm
+            initialTask={editingTask}
+            onSubmit={handleEditSubmit}
+            onCancel={() => setEditingTask(null)}
+          />
+        )}
+      </Dialog>
 
       <footer className="bg-gray-800 text-white p-4 mt-12">
         <div className="container mx-auto text-center">

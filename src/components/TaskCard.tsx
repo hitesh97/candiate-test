@@ -5,9 +5,15 @@ interface TaskCardProps {
   task: Task;
   onUpdate: (id: string, updates: Partial<Task>) => void;
   onDelete: (id: string) => void;
+  onEdit?: (task: Task) => void;
 }
 
-export const TaskCard = ({ task, onUpdate, onDelete }: TaskCardProps) => {
+export const TaskCard = ({
+  task,
+  onUpdate,
+  onDelete,
+  onEdit,
+}: TaskCardProps) => {
   const priorityColors = {
     low: 'bg-green-100 text-green-800',
     medium: 'bg-yellow-100 text-yellow-800',
@@ -22,6 +28,12 @@ export const TaskCard = ({ task, onUpdate, onDelete }: TaskCardProps) => {
 
   const handleDelete = () => {
     onDelete(task.id);
+  };
+
+  const handleEdit = () => {
+    if (onEdit) {
+      onEdit(task);
+    }
   };
 
   const handleStatusToggle = () => {
@@ -95,6 +107,14 @@ export const TaskCard = ({ task, onUpdate, onDelete }: TaskCardProps) => {
         >
           Change Status
         </button>
+        {onEdit && (
+          <button
+            onClick={handleEdit}
+            className="flex-1 bg-green-500 text-white py-2 sm:py-1 px-3 rounded text-sm hover:bg-green-600 transition-colors min-h-11 sm:min-h-0"
+          >
+            Edit
+          </button>
+        )}
         <button
           onClick={handleDelete}
           className="bg-red-500 text-white py-2 sm:py-1 px-3 rounded text-sm hover:bg-red-600 transition-colors min-h-11 sm:min-h-0"

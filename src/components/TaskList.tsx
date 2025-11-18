@@ -8,6 +8,7 @@ interface TaskListProps {
   searchQuery: string;
   onUpdateTask: (id: string, updates: Partial<Task>) => void;
   onDeleteTask: (id: string) => void;
+  onEditTask?: (task: Task) => void;
 }
 
 export const TaskList = ({
@@ -16,6 +17,7 @@ export const TaskList = ({
   searchQuery,
   onUpdateTask,
   onDeleteTask,
+  onEditTask,
 }: TaskListProps) => {
   const [sortBy, setSortBy] = useState<
     'createdAt' | 'dueDate' | 'priority' | 'title'
@@ -151,6 +153,7 @@ export const TaskList = ({
             task={task}
             onUpdate={onUpdateTask}
             onDelete={onDeleteTask}
+            onEdit={onEditTask}
           />
         ))}
       </div>
