@@ -15,8 +15,13 @@ export const TaskFilter = ({
   const [searchInput, setSearchInput] = useState('');
 
   useEffect(() => {
-    onSearchChange(searchInput);
-  }, [searchInput, onSearchChange]);
+    // Debounce search to improve performance
+    const timeoutId = setTimeout(() => {
+      onSearchChange(searchInput);
+    }, 300);
+
+    return () => clearTimeout(timeoutId);
+  }, [searchInput]);
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchInput(e.target.value);
