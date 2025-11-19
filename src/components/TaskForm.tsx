@@ -113,10 +113,10 @@ export const TaskForm = ({
 
   return (
     <form action={formAction} className="bg-white p-6 rounded-lg shadow-md">
-      <div className="mb-4">
+      <div className="mb-5">
         <label
           htmlFor="title"
-          className="block text-sm font-medium text-gray-700 mb-2"
+          className="block text-sm font-semibold text-gray-700 mb-2"
         >
           Title <span className="text-red-500">*</span>
         </label>
@@ -126,7 +126,7 @@ export const TaskForm = ({
           name="title"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 ${
+          className={`w-full px-3 py-2.5 border rounded-md focus:outline-none focus:ring-2 text-sm font-medium placeholder:text-gray-400 ${
             formState.errors.title
               ? 'border-red-500 focus:ring-red-500'
               : 'border-gray-300 focus:ring-blue-500'
@@ -134,14 +134,16 @@ export const TaskForm = ({
           placeholder="Enter task title"
         />
         {formState.errors.title && (
-          <p className="mt-1 text-sm text-red-600">{formState.errors.title}</p>
+          <p className="mt-1.5 text-sm text-red-600 font-medium">
+            {formState.errors.title}
+          </p>
         )}
       </div>
 
-      <div className="mb-4">
+      <div className="mb-5">
         <label
           htmlFor="description"
-          className="block text-sm font-medium text-gray-700 mb-2"
+          className="block text-sm font-semibold text-gray-700 mb-2"
         >
           Description <span className="text-red-500">*</span>
         </label>
@@ -151,7 +153,7 @@ export const TaskForm = ({
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           rows={3}
-          className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 ${
+          className={`w-full px-3 py-2.5 border rounded-md focus:outline-none focus:ring-2 text-sm font-medium placeholder:text-gray-400 ${
             formState.errors.description
               ? 'border-red-500 focus:ring-red-500'
               : 'border-gray-300 focus:ring-blue-500'
@@ -159,17 +161,17 @@ export const TaskForm = ({
           placeholder="Enter task description"
         />
         {formState.errors.description && (
-          <p className="mt-1 text-sm text-red-600">
+          <p className="mt-1.5 text-sm text-red-600 font-medium">
             {formState.errors.description}
           </p>
         )}
       </div>
 
-      <div className="grid grid-cols-2 gap-4 mb-4">
+      <div className="grid grid-cols-2 gap-4 mb-5">
         <div>
           <label
             htmlFor="status"
-            className="block text-sm font-medium text-gray-700 mb-2"
+            className="block text-sm font-semibold text-gray-700 mb-2"
           >
             Status
           </label>
@@ -178,7 +180,7 @@ export const TaskForm = ({
             name="status"
             value={status}
             onChange={(e) => setStatus(e.target.value as TaskStatus)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm font-medium"
           >
             <option value="todo">To Do</option>
             <option value="in-progress">In Progress</option>
@@ -189,7 +191,7 @@ export const TaskForm = ({
         <div>
           <label
             htmlFor="priority"
-            className="block text-sm font-medium text-gray-700 mb-2"
+            className="block text-sm font-semibold text-gray-700 mb-2"
           >
             Priority
           </label>
@@ -198,7 +200,7 @@ export const TaskForm = ({
             name="priority"
             value={priority}
             onChange={(e) => setPriority(e.target.value as TaskPriority)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm font-medium"
           >
             <option value="low">Low</option>
             <option value="medium">Medium</option>
@@ -211,7 +213,7 @@ export const TaskForm = ({
         <div>
           <label
             htmlFor="dueDate"
-            className="block text-sm font-medium text-gray-700 mb-2"
+            className="block text-sm font-semibold text-gray-700 mb-2"
           >
             Due Date <span className="text-red-500">*</span>
           </label>
@@ -221,14 +223,14 @@ export const TaskForm = ({
             name="dueDate"
             value={dueDate}
             onChange={(e) => setDueDate(e.target.value)}
-            className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 ${
+            className={`w-full px-3 py-2.5 border rounded-md focus:outline-none focus:ring-2 text-sm font-medium ${
               formState.errors.dueDate
                 ? 'border-red-500 focus:ring-red-500'
                 : 'border-gray-300 focus:ring-blue-500'
             }`}
           />
           {formState.errors.dueDate && (
-            <p className="mt-1 text-sm text-red-600">
+            <p className="mt-1.5 text-sm text-red-600 font-medium">
               {formState.errors.dueDate}
             </p>
           )}
@@ -237,7 +239,7 @@ export const TaskForm = ({
         <div>
           <label
             htmlFor="tags"
-            className="block text-sm font-medium text-gray-700 mb-2"
+            className="block text-sm font-semibold text-gray-700 mb-2"
           >
             Tags
           </label>
@@ -248,7 +250,7 @@ export const TaskForm = ({
             value={tagInput}
             onChange={(e) => setTagInput(e.target.value)}
             onKeyDown={handleTagInputKeyDown}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm font-medium placeholder:text-gray-400"
             placeholder="Type a tag and press Enter"
           />
           {tags.length > 0 && (
@@ -260,10 +262,10 @@ export const TaskForm = ({
           )}
         </div>
       </div>
-      <div className="flex gap-2">
+      <div className="flex gap-3">
         <button
           type="submit"
-          className="flex-1 bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 transition-colors"
+          className="flex-1 bg-blue-500 text-white py-3 px-6 rounded-md hover:bg-blue-600 transition-colors font-semibold text-base shadow-sm"
         >
           {initialTask ? 'Update Task' : 'Add Task'}
         </button>
@@ -271,7 +273,7 @@ export const TaskForm = ({
           <button
             type="button"
             onClick={onCancel}
-            className="flex-1 bg-gray-300 text-gray-700 py-2 px-4 rounded-md hover:bg-gray-400 transition-colors"
+            className="flex-1 bg-gray-300 text-gray-700 py-3 px-6 rounded-md hover:bg-gray-400 transition-colors font-semibold text-base shadow-sm"
           >
             Cancel
           </button>

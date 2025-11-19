@@ -488,15 +488,26 @@ Used vitest with @testing-library/react's renderHook for testing custom hooks. M
 
 ## UX improvements and refactoring
 
+### Typography System & Dashboard Design
+
+**Location:** `src/styles.css`, `src/app/app.tsx`, `src/components/*.tsx`
+
+**Improvements:**
+Implemented a professional typography system using Inter font family from Google Fonts with optimized rendering settings. Enhanced header typography with larger, bolder text (text-4xl) and improved subtitle clarity. Upgraded dashboard stat cards with uppercase labels, larger number displays (text-3xl), and consistent padding. Applied systematic font sizing across all components: form labels use font-semibold, inputs have font-medium, buttons display font-semibold, and TaskCard titles use font-bold with tracking-tight. Standardized button sizes with consistent padding (py-2.5 to py-3.5, px-4 to px-8) and added subtle shadows for visual depth. All typography follows a clear hierarchy optimized for dashboard-style interfaces with proper responsive breakpoints for mobile devices.
+
+### TaskFilter Enhancements with Search UX
+
+**Location:** `src/components/TaskFilter.tsx`, `src/app/app.tsx`
+
+**Improvements:**
+Enhanced TaskFilter with performance optimizations using useCallback for memoized event handlers. Added search icon visual indicator and clear button (X) that appears when search has content. Implemented live results counter showing "Found X tasks" or "No tasks found" below filters when searching. Improved filter buttons with scale-105 effect on active state and better shadow transitions. Extracted filter configuration to FILTER_OPTIONS constant for maintainability. Enhanced accessibility with aria-label and aria-pressed attributes on all interactive elements. Restructured layout to display filter sidebar and task list side-by-side on desktop (lg:flex-row) while stacking vertically on mobile/tablet for optimal space usage.
+
 ### Enhanced TaskCard Visual Design
 
 **Location:** `src/components/TaskCard.tsx`, `src/components/icons/`, `src/components/TagPill.tsx`
 
-**Issue:**
-The original TaskCard had a basic, utilitarian design with several UX shortcomings. Task titles were small and hard to scan quickly in a list, while the description text lacked visual hierarchy and had the same weight as other content. Meta information like due dates and created dates had no spacing between lines, making the card feel cramped and difficult to read. The card relied entirely on text labels without any visual cues or icons to help users quickly identify information types. Additionally, tags were displayed as simple text without visual distinction, and different components used inconsistent tag styling throughout the application, creating a disjointed user experience.
-
-**Solution:**
-Implemented a comprehensive visual redesign of the TaskCard component following modern UX best practices to improve readability, establish clear visual hierarchy, and ensure consistency across the application. The solution included increasing task title size to make them more prominent and scannable, muting the description text color while adding comfortable line spacing for better readability, and restructuring the meta information layout with proper spacing and alignment. Created a reusable icon system with three distinct icons for calendar, clock, and tag symbols to provide instant visual recognition. Developed a shared TagPill component that handles both read-only display in TaskCard and interactive removal in TaskForm, ensuring consistent tag styling throughout the entire application. All components now use Tailwind CSS utility classes for consistency, include responsive design breakpoints for mobile optimization, and maintain proper TypeScript interfaces for type safety and component composition.
+**Improvements:**
+Redesigned TaskCard with improved visual hierarchy: larger titles (text-lg to text-xl), muted description text (text-gray-600), and better spacing throughout. Created reusable icon components (CalendarIcon, ClockIcon, TagIcon) for instant visual recognition of dates and tags. Developed TagPill component for consistent tag styling across TaskCard and TaskForm. Enhanced button styling with consistent sizes (py-2.5 px-4) and shadow-sm for subtle depth. Improved date display with smaller, distinct styling (text-xs) and font-semibold labels. All changes use Tailwind CSS utilities with responsive breakpoints and maintain proper TypeScript interfaces for component composition.
 
 ## Features Implemented
 

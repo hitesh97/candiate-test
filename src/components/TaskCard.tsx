@@ -62,21 +62,21 @@ export const TaskCard = ({
   };
 
   return (
-    <div className="bg-white p-4 rounded-lg shadow-md border border-gray-200 hover:shadow-lg transition-shadow">
-      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-2 gap-2">
-        <h3 className="text-xl sm:text-2xl font-semibold text-gray-800 wrap-break-word">
+    <div className="bg-white p-5 rounded-lg shadow-md border border-gray-200 hover:shadow-lg transition-shadow">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-3 gap-2">
+        <h3 className="text-lg sm:text-xl font-bold text-gray-900 wrap-break-word tracking-tight">
           {task.title}
         </h3>
         <div className="flex gap-2 flex-wrap">
           <span
-            className={`px-2 py-1 text-xs rounded-full ${
+            className={`px-2.5 py-1 text-xs font-semibold rounded-full ${
               PRIORITY_COLORS[task.priority]
             }`}
           >
             {task.priority}
           </span>
           <span
-            className={`px-2 py-1 text-xs rounded-full ${
+            className={`px-2.5 py-1 text-xs font-semibold rounded-full ${
               STATUS_COLORS[task.status]
             }`}
           >
@@ -85,28 +85,30 @@ export const TaskCard = ({
         </div>
       </div>
 
-      <p className="text-gray-500 mb-3 leading-relaxed">{task.description}</p>
+      <p className="text-gray-600 mb-4 leading-relaxed text-sm">
+        {task.description}
+      </p>
 
-      <div className="text-sm text-gray-500 mb-3 flex flex-col gap-2">
-        <div className="flex items-center gap-3">
+      <div className="text-sm text-gray-600 mb-4 flex flex-col gap-2.5">
+        <div className="flex items-center gap-2.5">
           <CalendarIcon className="text-gray-400" />
-          <span>
-            <span className="text-gray-700 font-medium">Due:</span>{' '}
-            {formatDate(task.dueDate)}
+          <span className="text-xs">
+            <span className="text-gray-700 font-semibold">Due:</span>{' '}
+            <span className="text-gray-600">{formatDate(task.dueDate)}</span>
           </span>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2.5">
           <ClockIcon className="text-gray-400" />
-          <span>
-            <span className="text-gray-700 font-medium">Created:</span>{' '}
-            {formatDate(task.createdAt)}
+          <span className="text-xs">
+            <span className="text-gray-700 font-semibold">Created:</span>{' '}
+            <span className="text-gray-600">{formatDate(task.createdAt)}</span>
           </span>
         </div>
       </div>
 
       {task.tags && task.tags.length > 0 && (
-        <div className="mb-3">
+        <div className="mb-4">
           <div className="flex gap-2 flex-wrap">
             {task.tags.map((tag, index) => (
               <TagPill key={index} tag={tag} />
@@ -118,21 +120,21 @@ export const TaskCard = ({
       <div className="flex gap-2 flex-col sm:flex-row">
         <button
           onClick={handleStatusToggle}
-          className="flex-1 bg-blue-500 text-white py-2 sm:py-1 px-3 rounded text-sm hover:bg-blue-600 transition-colors min-h-11 sm:min-h-0"
+          className="flex-1 bg-blue-500 text-white py-2.5 px-4 rounded-md text-sm font-semibold hover:bg-blue-600 transition-colors shadow-sm"
         >
-          Change Status
+          Next Status
         </button>
         {onEdit && (
           <button
             onClick={handleEdit}
-            className="flex-1 bg-green-500 text-white py-2 sm:py-1 px-3 rounded text-sm hover:bg-green-600 transition-colors min-h-11 sm:min-h-0"
+            className="flex-1 bg-green-500 text-white py-2.5 px-4 rounded-md text-sm font-semibold hover:bg-green-600 transition-colors shadow-sm"
           >
             Edit
           </button>
         )}
         <button
           onClick={handleDelete}
-          className="bg-red-500 text-white py-2 sm:py-1 px-3 rounded text-sm hover:bg-red-600 transition-colors min-h-11 sm:min-h-0"
+          className="bg-red-500 text-white py-2.5 px-4 rounded-md text-sm font-semibold hover:bg-red-600 transition-colors shadow-sm"
         >
           Delete
         </button>
