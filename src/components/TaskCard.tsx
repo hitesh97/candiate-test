@@ -1,5 +1,8 @@
 import { Task } from '../types/task';
 import React from 'react';
+import { TagPill } from './TagPill';
+import { CalendarIcon } from './icons/CalendarIcon';
+import { ClockIcon } from './icons/ClockIcon';
 
 interface TaskCardProps {
   task: Task;
@@ -61,7 +64,7 @@ export const TaskCard = ({
   return (
     <div className="bg-white p-4 rounded-lg shadow-md border border-gray-200 hover:shadow-lg transition-shadow">
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-2 gap-2">
-        <h3 className="text-lg font-semibold text-gray-800 wrap-break-word">
+        <h3 className="text-xl sm:text-2xl font-semibold text-gray-800 wrap-break-word">
           {task.title}
         </h3>
         <div className="flex gap-2 flex-wrap">
@@ -82,23 +85,31 @@ export const TaskCard = ({
         </div>
       </div>
 
-      <p className="text-gray-600 mb-3">{task.description}</p>
+      <p className="text-gray-500 mb-3 leading-relaxed">{task.description}</p>
 
-      <div className="text-sm text-gray-500 mb-3">
-        <p>Due: {formatDate(task.dueDate)}</p>
-        <p>Created: {formatDate(task.createdAt)}</p>
+      <div className="text-sm text-gray-500 mb-3 flex flex-col gap-2">
+        <div className="flex items-center gap-3">
+          <CalendarIcon className="text-gray-400" />
+          <span>
+            <span className="text-gray-700 font-medium">Due:</span>{' '}
+            {formatDate(task.dueDate)}
+          </span>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <ClockIcon className="text-gray-400" />
+          <span>
+            <span className="text-gray-700 font-medium">Created:</span>{' '}
+            {formatDate(task.createdAt)}
+          </span>
+        </div>
       </div>
 
       {task.tags && task.tags.length > 0 && (
         <div className="mb-3">
           <div className="flex gap-2 flex-wrap">
             {task.tags.map((tag, index) => (
-              <span
-                key={index}
-                className="bg-gray-200 text-gray-700 px-2 py-1 text-xs rounded-full"
-              >
-                #{tag}
-              </span>
+              <TagPill key={index} tag={tag} />
             ))}
           </div>
         </div>

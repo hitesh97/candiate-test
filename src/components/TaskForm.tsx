@@ -1,5 +1,6 @@
 import { Task, TaskStatus, TaskPriority } from '../types/task';
 import React, { useState, useActionState } from 'react';
+import { TagPill } from './TagPill';
 
 interface TaskFormProps {
   onSubmit: (task: Omit<Task, 'id' | 'createdAt'>) => void;
@@ -253,20 +254,7 @@ export const TaskForm = ({
           {tags.length > 0 && (
             <div className="flex gap-2 flex-wrap mt-2">
               {tags.map((tag, index) => (
-                <span
-                  key={index}
-                  className="inline-flex items-center gap-1 bg-gray-200 text-gray-700 px-3 py-1 rounded-full text-sm"
-                >
-                  #{tag}
-                  <button
-                    type="button"
-                    onClick={() => removeTag(tag)}
-                    className="hover:text-red-600 focus:outline-none"
-                    aria-label={`Remove tag ${tag}`}
-                  >
-                    ×
-                  </button>
-                </span>
+                <TagPill key={index} tag={tag} removable onRemove={removeTag} />
               ))}
             </div>
           )}
