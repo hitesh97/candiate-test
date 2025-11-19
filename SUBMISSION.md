@@ -509,6 +509,13 @@ Enhanced TaskFilter with performance optimizations using useCallback for memoize
 **Improvements:**
 Redesigned TaskCard with improved visual hierarchy: larger titles (text-lg to text-xl), muted description text (text-gray-600), and better spacing throughout. Created reusable icon components (CalendarIcon, ClockIcon, TagIcon) for instant visual recognition of dates and tags. Developed TagPill component for consistent tag styling across TaskCard and TaskForm. Enhanced button styling with consistent sizes (py-2.5 px-4) and shadow-sm for subtle depth. Improved date display with smaller, distinct styling (text-xs) and font-semibold labels. All changes use Tailwind CSS utilities with responsive breakpoints and maintain proper TypeScript interfaces for component composition.
 
+### Task Priority Visual Indicators
+
+**Location:** `src/components/TaskCard.tsx`
+
+**Improvements:**
+Implemented colored left borders (4px accent stripe) on TaskCards based on priority: red for high, yellow for medium, green for low. Added overdue detection logic that highlights overdue dates in red bold text with "OVERDUE" badge for incomplete tasks. Implemented animated pulse effect with red ring (ring-2 ring-red-300) for high-priority overdue tasks to draw immediate attention to critical deadlines. Visual indicators enable instant task prioritization through color-coded borders and dynamic animations, improving workflow efficiency and deadline awareness without requiring user interaction.
+
 ## Features Implemented
 
 ### Feature #1: Enhanced Form Validation

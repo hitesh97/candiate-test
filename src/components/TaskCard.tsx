@@ -18,6 +18,12 @@ const PRIORITY_COLORS = {
   high: 'bg-red-100 text-red-800',
 } as const;
 
+const PRIORITY_BORDER_COLORS = {
+  low: 'border-l-green-500',
+  medium: 'border-l-yellow-500',
+  high: 'border-l-red-500',
+} as const;
+
 const STATUS_COLORS = {
   todo: 'bg-gray-100 text-gray-800',
   'in-progress': 'bg-blue-100 text-blue-800',
@@ -36,6 +42,15 @@ const dateFormatter = new Intl.DateTimeFormat('en-GB', {
 const formatDate = (dateString?: string): string => {
   if (!dateString) return 'No due date';
   return dateFormatter.format(new Date(dateString));
+};
+
+const isOverdue = (dueDate?: string): boolean => {
+  if (!dueDate) return false;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const due = new Date(dueDate);
+  due.setHours(0, 0, 0, 0);
+  return due < today;
 };
 
 export const TaskCard = ({
@@ -61,8 +76,15 @@ export const TaskCard = ({
     onUpdate(task.id, { status: nextStatus });
   };
 
+  const taskIsOverdue = isOverdue(task.dueDate);
+  const isHighPriorityOverdue = task.priority === 'high' && taskIsOverdue;
+
   return (
-    <div className="bg-white p-5 rounded-lg shadow-md border border-gray-200 hover:shadow-lg transition-shadow">
+    <div
+      className={`bg-white p-5 rounded-lg shadow-md border-l-4 border-t border-r border-b border-gray-200 hover:shadow-lg transition-all ${
+        PRIORITY_BORDER_COLORS[task.priority]
+      } ${isHighPriorityOverdue ? 'animate-pulse ring-2 ring-red-300' : ''}`}
+    >
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-3 gap-2">
         <h3 className="text-lg sm:text-xl font-bold text-gray-900 wrap-break-word tracking-tight">
           {task.title}
@@ -94,7 +116,20 @@ export const TaskCard = ({
           <CalendarIcon className="text-gray-400" />
           <span className="text-xs">
             <span className="text-gray-700 font-semibold">Due:</span>{' '}
-            <span className="text-gray-600">{formatDate(task.dueDate)}</span>
+            <span
+              className={`${
+                taskIsOverdue && task.status !== 'done'
+                  ? 'text-red-600 font-bold'
+                  : 'text-gray-600'
+              }`}
+            >
+              {formatDate(task.dueDate)}
+              {taskIsOverdue && task.status !== 'done' && (
+                <span className="ml-1.5 text-xs font-bold text-red-600 bg-red-50 px-1.5 py-0.5 rounded">
+                  OVERDUE
+                </span>
+              )}
+            </span>
           </span>
         </div>
 
