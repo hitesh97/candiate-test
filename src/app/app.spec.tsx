@@ -189,10 +189,13 @@ describe('App', () => {
     expect(screen.getByText(/medium/i)).toBeDefined();
 
     // ========== STEP 5: CHANGE STATUS ==========
-    // Click "Next Status" to move from TODO → IN PROGRESS
-    const changeStatusButton = screen.getByRole('button', {
-      name: /Next Status/i,
+    // Click "Status" button on the task card to move from TODO → IN PROGRESS
+    // Get all buttons named "Status" and select the one on the task card (second one)
+    const statusButtons = screen.getAllByRole('button', {
+      name: /Status/i,
     });
+    // The task card status button is the second one (first is in filter panel)
+    const changeStatusButton = statusButtons[1];
     await user.click(changeStatusButton);
 
     // Verify status changed to IN PROGRESS

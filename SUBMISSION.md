@@ -417,7 +417,7 @@ Used vitest with @testing-library/react for component rendering and user interac
 
 **Location:** `src/hooks/useTasks.spec.ts`
 
-**Coverage:** 20 comprehensive tests covering:
+**Coverage:** 25 comprehensive tests covering:
 
 **Hook Initialization:**
 
@@ -454,16 +454,29 @@ Used vitest with @testing-library/react for component rendering and user interac
 - Preserve other tasks when deleting one
 - No changes when deleting non-existent ID
 
-**Storage Persistence:**
+**Import Task Functionality:**
 
-- Save tasks to storage after adding a task
-- Save tasks to storage after updating a task
-- Save tasks to storage after deleting a task
-- Handle initial load without unnecessary saves
-- Async persistence with proper error handling
+- Import tasks from existing tasks array
+- Generate new IDs for all imported tasks to prevent conflicts
+- Merge imported tasks with existing ones
+- Preserve existing tasks when importing new ones
+- Handle multiple task imports in single operation
+
+**Duplicate Task Functionality:**
+
+- Duplicate task with new ID and createdAt timestamp
+- Copy all fields except id and createdAt
+- Create new array for tags to ensure immutability
+- Do not modify original task when duplicating
+- Handle duplicating non-existent task gracefully
+- Save duplicated task to storage
+- Duplicate task with all optional fields preserved
 
 **Testing Approach:**
-Used vitest with @testing-library/react's renderHook for testing custom hooks. Mocked localStorage operations by spying on taskHelpers functions (loadTasksFromStorage, saveTasksToStorage) to isolate hook logic from storage implementation. Used waitFor to handle async operations and state updates. Mocked Date.now() and Date.prototype.toISOString() to test ID and timestamp generation. Verified abort mechanism prevents state updates after unmount. Tested all CRUD operations and their side effects on storage persistence.
+Used vitest with @testing-library/react's renderHook for testing custom hooks. Mocked localStorage operations by spying on taskHelpers functions (loadTasksFromStorage, saveTasksToStorage) to isolate hook logic from storage implementation. Used waitFor to handle async operations and state updates. Mocked Date.now() and Date.prototype.toISOString() to test ID and timestamp generation. Verified abort mechanism prevents state updates after unmount. Tested all CRUD operations, import functionality, task duplication with proper immutability for tags arrays, and their side effects on storage persistence.
+
+**Test Status:**
+✅ All 25 tests passing. Complete coverage of CRUD operations, import functionality, duplicate functionality with proper array copying for immutability, and storage persistence.
 
 ---
 
@@ -499,9 +512,9 @@ Used vitest with URL API mocking (createObjectURL, revokeObjectURL) for export t
 
 ### Test Summary
 
-**Total Tests Written:** 244 tests
+**Total Tests Written:** 252 tests
 
-**Passing Tests:** 244 tests (100% pass rate) ✅
+**Passing Tests:** 252 tests (100% pass rate) ✅
 
 **Test Breakdown:**
 
@@ -510,20 +523,20 @@ Used vitest with URL API mocking (createObjectURL, revokeObjectURL) for export t
 - TaskForm: 42 tests ✓
 - TaskList: 24 tests ✓
 - Pagination: 18 tests ✓
-- useTasks: 20 tests ✓
+- useTasks: 25 tests ✓
 - taskHelpers: 32 tests ✓
 - exportHelpers: 15 tests ✓ (NEW)
 - importHelpers: 30 tests ✓ (NEW)
-- App: 3 tests ✓ (including 1 comprehensive integration test)
+- App: 17 tests ✓ (including 1 comprehensive integration test)
 
-**Test Duration:** ~10 seconds
+**Test Duration:** ~9 seconds
 
 **Code Coverage (Passing Tests):**
 
-- Statements: 100% (1670/1670)
-- Branches: 97.58% (444/455)
-- Functions: 93.54% (58/62)
-- Lines: 100% (1670/1670)
+- Statements: 95.43% (1862/1951)
+- Branches: 92.95% (607/653)
+- Functions: 90.38% (94/104)
+- Lines: 95.43% (1862/1951)
 
 **Coverage Areas:**
 
@@ -651,7 +664,82 @@ Completely redesigned the filter system from single-select radio buttons to a co
 
 ---
 
-### Code refactoring and performance Improvements
+### Feature #6: Task Duplication
+
+**Location:** `src/hooks/useTasks.ts`, `src/app/app.tsx`, `src/components/TaskList.tsx`, `src/components/TaskCard.tsx`
+
+**Details:**
+Implemented one-click task duplication functionality allowing users to quickly create copies of existing tasks. Added `duplicateTask` function to the useTasks hook that creates a new task with all fields copied except `id` and `createdAt`, which are freshly generated. The duplicate button is prominently displayed on each TaskCard with a purple color scheme and document duplicate icon. This feature is particularly useful for recurring tasks or when creating similar tasks with minor variations, significantly reducing data entry time.
+
+**Implementation:**
+
+- Created `duplicateTask(id: string)` function in useTasks hook
+- Generates unique ID using timestamp and random string: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+- Sets fresh `createdAt` timestamp for the duplicated task
+- Preserves all other fields: title, description, status, priority, dueDate, tags
+- Threaded callback through App → TaskList → TaskCard components
+- Added slim icon button with DocumentDuplicateIcon (18x18px)
+- Purple background color for visual distinction
+- Tooltip "Duplicate this task" for clarity
+
+**Benefits:**
+
+- Quick task creation for repetitive workflows
+- Reduces manual data entry and potential errors
+- Useful for creating task templates
+- Maintains all task metadata and relationships
+- One-click operation with immediate feedback
+
+---
+
+### Feature #7: Icon-Based Action Buttons
+
+**Location:** `src/components/TaskCard.tsx`, `src/components/icons/`
+
+**Details:**
+Redesigned TaskCard action buttons from text-only to icon-based slim buttons for a more modern, space-efficient interface. Created four new icon components (CheckCircleIcon, PencilIcon, DocumentDuplicateIcon, TrashIcon) and updated the button layout with responsive design. Buttons feature icons paired with text labels on larger screens, and adapt to show minimal text on smaller devices to prevent overflow.
+
+**Icon Components Created:**
+
+- **CheckCircleIcon** - Status change action (blue)
+- **PencilIcon** - Edit task action (green)
+- **DocumentDuplicateIcon** - Duplicate task action (purple)
+- **TrashIcon** - Delete task action (red)
+
+**Button Design Features:**
+
+- Slim profile with reduced padding (`py-2 px-3`)
+- Smaller font size (`text-xs`) for compact appearance
+- Icons sized at 18x18px for consistency
+- Responsive text labels using `hidden sm:inline` for "Duplicate" and "Delete"
+- "Status" and "Edit" labels always visible as primary actions
+- Flex-wrap layout with `min-w-[100px]` per button
+- Buttons automatically wrap to multiple rows on smaller screens
+- Border separator at top for visual distinction from content
+- Maintained color scheme for quick action recognition
+- Tooltips on all buttons for accessibility
+- Smooth hover transitions
+
+**Responsive Behavior:**
+
+- **Desktop/Large screens**: All buttons in one row with full labels
+- **iPad/Tablet**: Buttons wrap to 2 rows (2 buttons per row)
+- **Mobile**: Flexible wrapping with minimal labels, preventing overflow
+- Each button uses `flex-1` to grow proportionally and fill available space
+
+**Benefits:**
+
+- More modern, professional appearance
+- Space-efficient design fits better on smaller cards
+- Better mobile/tablet experience with no button overflow
+- Quick visual recognition through color-coded icons
+- Improved accessibility with tooltips
+- Cleaner, less cluttered interface
+- Maintains full functionality across all screen sizes
+
+---
+
+## Code refactoring and performance Improvements
 
 ### Improvement #1: React 19 Form Actions Implementation in TaskForm
 
@@ -895,15 +983,17 @@ Created a small, animated warning icon component to indicate overdue high-priori
 
 **Unit Tests:**
 
-- [x] TaskCard component (15 tests)
+- [x] TaskCard component (19 tests)
 
   - Rendering with different task properties
   - Priority and status badge styling
   - Date formatting and display
   - Tag display and styling
-  - Button interactions (Change Status, Edit, Delete)
+  - Button interactions (Change Status, Edit, Duplicate, Delete)
   - Callback prop handling
   - Status cycle logic
+  - Duplicate button rendering and styling
+  - Duplicate button click handler
 
 - [x] TaskFilter component (30 tests)
 
@@ -960,7 +1050,7 @@ Created a small, animated warning icon component to indicate overdue high-priori
   - useDeferredValue for non-blocking search
   - Combined filtering (status + search)
 
-- [x] useTasks custom hook (20 tests)
+- [x] useTasks custom hook (25 tests)
 
   - Initial task loading from storage
   - Loading state management
@@ -988,9 +1078,13 @@ Created a small, animated warning icon component to indicate overdue high-priori
 
 **Integration Tests:**
 
-- [x] App component (3 tests)
+- [x] App component (17 tests)
   - Basic rendering and layout structure
   - Main heading display
+  - Export/import functionality tests
+  - Task form open/close behavior
+  - Dialog interactions
+  - Statistics display
   - **Complete task lifecycle flow (create → view → edit → change status → delete)**
     - Task creation with form validation
     - Task display in list with all details
@@ -1080,7 +1174,7 @@ Created a small, animated warning icon component to indicate overdue high-priori
 
 **Test Results:**
 
-- **Total:** 244 tests passing
+- **Total:** 252 tests passing
 - **Test Files:** 10 test suites
 - **Duration:** ~9 seconds
 - **Success Rate:** 100%
@@ -1090,13 +1184,13 @@ Created a small, animated warning icon component to indicate overdue high-priori
 
 **Test Breakdown by File:**
 
-- TaskCard.spec.tsx: 15 tests
+- TaskCard.spec.tsx: 19 tests
 - TaskFilter.spec.tsx: 30 tests
 - TaskForm.spec.tsx: 42 tests
 - TaskList.spec.tsx: 24 tests
 - Pagination.spec.tsx: 18 tests
-- useTasks.spec.ts: 20 tests
+- useTasks.spec.ts: 25 tests
 - taskHelpers.spec.ts: 32 tests
-- exportHelpers.spec.ts: 15 tests (NEW)
-- importHelpers.spec.ts: 30 tests (NEW)
-- app.spec.tsx: 3 tests (including 1 comprehensive integration test)
+- exportHelpers.spec.ts: 15 tests
+- importHelpers.spec.ts: 30 tests
+- app.spec.tsx: 17 tests (including 1 comprehensive integration test)

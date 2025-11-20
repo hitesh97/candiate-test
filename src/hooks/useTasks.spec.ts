@@ -632,4 +632,184 @@ describe('useTasks', () => {
     expect(result.current.tasks[1].id).toBe('2');
     expect(result.current.tasks[2].id).toBe('3');
   });
+
+  describe('duplicateTask', () => {
+    it('should duplicate a task with new id and createdAt', async () => {
+      const originalTask: Task = {
+        id: '1',
+        title: 'Original Task',
+        description: 'Original description',
+        status: 'in-progress',
+        priority: 'high',
+        dueDate: '2025-12-31',
+        createdAt: '2025-01-01T00:00:00.000Z',
+        tags: ['important', 'urgent'],
+      };
+
+      mockLoadTasksFromStorage.mockResolvedValue([originalTask]);
+      mockSaveTasksToStorage.mockResolvedValue(undefined);
+
+      const mockTimestamp = 1234567890123;
+      vi.spyOn(Date, 'now').mockReturnValue(mockTimestamp);
+      vi.spyOn(Date.prototype, 'toISOString').mockReturnValue(
+        '2025-11-20T12:00:00.000Z'
+      );
+
+      const { result } = renderHook(() => useTasks());
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
+
+      result.current.duplicateTask('1');
+
+      await waitFor(() => {
+        expect(result.current.tasks).toHaveLength(2);
+      });
+
+      const duplicatedTask = result.current.tasks[1];
+
+      // Check that all fields except id and createdAt are copied
+      expect(duplicatedTask.title).toBe('Original Task');
+      expect(duplicatedTask.description).toBe('Original description');
+      expect(duplicatedTask.status).toBe('in-progress');
+      expect(duplicatedTask.priority).toBe('high');
+      expect(duplicatedTask.dueDate).toBe('2025-12-31');
+      expect(duplicatedTask.tags).toEqual(['important', 'urgent']);
+
+      // Check that id and createdAt are new
+      expect(duplicatedTask.id).not.toBe('1');
+      expect(duplicatedTask.id).toContain(mockTimestamp.toString());
+      expect(duplicatedTask.createdAt).toBe('2025-11-20T12:00:00.000Z');
+      expect(duplicatedTask.createdAt).not.toBe('2025-01-01T00:00:00.000Z');
+    });
+
+    it('should not modify original task when duplicating', async () => {
+      const originalTask: Task = {
+        id: '1',
+        title: 'Original Task',
+        description: 'Description',
+        status: 'todo',
+        priority: 'medium',
+        createdAt: '2025-01-01T00:00:00.000Z',
+        tags: ['tag1'],
+      };
+
+      mockLoadTasksFromStorage.mockResolvedValue([originalTask]);
+      mockSaveTasksToStorage.mockResolvedValue(undefined);
+
+      const { result } = renderHook(() => useTasks());
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
+
+      const originalTaskSnapshot = { ...result.current.tasks[0] };
+
+      result.current.duplicateTask('1');
+
+      await waitFor(() => {
+        expect(result.current.tasks).toHaveLength(2);
+      });
+
+      // Original task should remain unchanged
+      expect(result.current.tasks[0]).toEqual(originalTaskSnapshot);
+    });
+
+    it('should handle duplicating non-existent task gracefully', async () => {
+      const task: Task = {
+        id: '1',
+        title: 'Task',
+        description: 'Description',
+        status: 'todo',
+        priority: 'low',
+        createdAt: '2025-01-01T00:00:00.000Z',
+        tags: [],
+      };
+
+      mockLoadTasksFromStorage.mockResolvedValue([task]);
+      mockSaveTasksToStorage.mockResolvedValue(undefined);
+
+      const { result } = renderHook(() => useTasks());
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
+
+      result.current.duplicateTask('non-existent-id');
+
+      await waitFor(() => {
+        expect(result.current.tasks).toHaveLength(1);
+      });
+
+      // Tasks array should remain unchanged
+      expect(result.current.tasks[0].id).toBe('1');
+    });
+
+    it('should save duplicated task to storage', async () => {
+      const task: Task = {
+        id: '1',
+        title: 'Task',
+        description: 'Description',
+        status: 'done',
+        priority: 'high',
+        createdAt: '2025-01-01T00:00:00.000Z',
+        tags: ['test'],
+      };
+
+      mockLoadTasksFromStorage.mockResolvedValue([task]);
+      mockSaveTasksToStorage.mockResolvedValue(undefined);
+
+      const { result } = renderHook(() => useTasks());
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
+
+      result.current.duplicateTask('1');
+
+      await waitFor(() => {
+        expect(mockSaveTasksToStorage).toHaveBeenCalled();
+      });
+
+      const savedTasks =
+        mockSaveTasksToStorage.mock.calls[
+          mockSaveTasksToStorage.mock.calls.length - 1
+        ][0];
+      expect(savedTasks).toHaveLength(2);
+    });
+
+    it('should duplicate task with all optional fields', async () => {
+      const taskWithAllFields: Task = {
+        id: '1',
+        title: 'Complete Task',
+        description: 'Full description',
+        status: 'in-progress',
+        priority: 'medium',
+        dueDate: '2025-12-15',
+        createdAt: '2025-01-01T00:00:00.000Z',
+        tags: ['tag1', 'tag2', 'tag3'],
+      };
+
+      mockLoadTasksFromStorage.mockResolvedValue([taskWithAllFields]);
+      mockSaveTasksToStorage.mockResolvedValue(undefined);
+
+      const { result } = renderHook(() => useTasks());
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
+
+      result.current.duplicateTask('1');
+
+      await waitFor(() => {
+        expect(result.current.tasks).toHaveLength(2);
+      });
+
+      const duplicated = result.current.tasks[1];
+      expect(duplicated.dueDate).toBe('2025-12-15');
+      expect(duplicated.tags).toEqual(['tag1', 'tag2', 'tag3']);
+      expect(duplicated.tags).not.toBe(taskWithAllFields.tags); // Should be a new array
+    });
+  });
 });

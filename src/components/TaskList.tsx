@@ -7,6 +7,7 @@ interface TaskListProps {
   tasks: Task[];
   onUpdateTask: (id: string, updates: Partial<Task>) => void;
   onDeleteTask: (id: string) => void;
+  onDuplicateTask: (id: string) => void;
   onEditTask?: (task: Task) => void;
 }
 
@@ -14,6 +15,7 @@ export const TaskList = ({
   tasks,
   onUpdateTask,
   onDeleteTask,
+  onDuplicateTask,
   onEditTask,
 }: TaskListProps) => {
   const [sortBy, setSortBy] = useState<
@@ -152,6 +154,7 @@ export const TaskList = ({
             task={task}
             onUpdate={onUpdateTask}
             onDelete={onDeleteTask}
+            onDuplicate={onDuplicateTask}
             onEdit={onEditTask}
           />
         ))}

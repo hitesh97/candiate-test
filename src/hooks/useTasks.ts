@@ -52,6 +52,26 @@ export const useTasks = () => {
   };
 
   /**
+   * Duplicate a task by copying all fields except id and createdAt.
+   * The new task gets a fresh ID and creation timestamp.
+   */
+  const duplicateTask = (id: string) => {
+    setTasks((prev) => {
+      const taskToDuplicate = prev.find((task) => task.id === id);
+      if (!taskToDuplicate) return prev;
+
+      const duplicatedTask: Task = {
+        ...taskToDuplicate,
+        id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        createdAt: new Date().toISOString(),
+        tags: [...taskToDuplicate.tags],
+      };
+
+      return [...prev, duplicatedTask];
+    });
+  };
+
+  /**
    * Import tasks in bulk, assigning new unique IDs to all imported tasks
    * to prevent conflicts with existing tasks.
    */
@@ -87,6 +107,7 @@ export const useTasks = () => {
     addTask,
     updateTask,
     deleteTask,
+    duplicateTask,
     importTasks,
   };
 };

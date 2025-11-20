@@ -156,7 +156,7 @@ describe('TaskCard', () => {
     );
 
     const changeStatusButton = screen.getByRole('button', {
-      name: /next status/i,
+      name: /status/i,
     });
     await user.click(changeStatusButton);
 
@@ -175,7 +175,7 @@ describe('TaskCard', () => {
     );
 
     const changeStatusButton = screen.getByRole('button', {
-      name: /next status/i,
+      name: /status/i,
     });
 
     // Click 1: todo -> in-progress
@@ -269,5 +269,72 @@ describe('TaskCard', () => {
     const statusBadge = screen.getByText('done');
     expect(statusBadge.className).toContain('bg-green-100');
     expect(statusBadge.className).toContain('text-green-800');
+  });
+
+  describe('Duplicate functionality', () => {
+    const mockOnDuplicate = vi.fn();
+
+    it('should render duplicate button', () => {
+      render(
+        <TaskCard
+          task={mockTask}
+          onUpdate={mockOnUpdate}
+          onDelete={mockOnDelete}
+          onDuplicate={mockOnDuplicate}
+        />
+      );
+
+      const duplicateButton = screen.getByTitle('Duplicate this task');
+      expect(duplicateButton).toBeDefined();
+      expect(duplicateButton.tagName).toBe('BUTTON');
+    });
+
+    it('should call onDuplicate with task id when duplicate button is clicked', async () => {
+      const user = userEvent.setup();
+      render(
+        <TaskCard
+          task={mockTask}
+          onUpdate={mockOnUpdate}
+          onDelete={mockOnDelete}
+          onDuplicate={mockOnDuplicate}
+        />
+      );
+
+      const duplicateButton = screen.getByTitle('Duplicate this task');
+      await user.click(duplicateButton);
+
+      expect(mockOnDuplicate).toHaveBeenCalledTimes(1);
+      expect(mockOnDuplicate).toHaveBeenCalledWith('1');
+    });
+
+    it('should render duplicate button with purple background', () => {
+      render(
+        <TaskCard
+          task={mockTask}
+          onUpdate={mockOnUpdate}
+          onDelete={mockOnDelete}
+          onDuplicate={mockOnDuplicate}
+        />
+      );
+
+      const duplicateButton = screen.getByTitle('Duplicate this task');
+      expect(duplicateButton.className).toContain('bg-purple-500');
+      expect(duplicateButton.className).toContain('hover:bg-purple-600');
+    });
+
+    it('should render duplicate button with icon', () => {
+      const { container } = render(
+        <TaskCard
+          task={mockTask}
+          onUpdate={mockOnUpdate}
+          onDelete={mockOnDelete}
+          onDuplicate={mockOnDuplicate}
+        />
+      );
+
+      const duplicateButton = screen.getByTitle('Duplicate this task');
+      const svg = duplicateButton.querySelector('svg');
+      expect(svg).toBeDefined();
+    });
   });
 });

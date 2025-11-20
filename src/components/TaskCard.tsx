@@ -4,11 +4,16 @@ import { TagPill } from './TagPill';
 import { CalendarIcon } from './icons/CalendarIcon';
 import { ClockIcon } from './icons/ClockIcon';
 import { AlertPinIcon } from './icons/AlertPinIcon';
+import { CheckCircleIcon } from './icons/CheckCircleIcon';
+import { PencilIcon } from './icons/PencilIcon';
+import { DocumentDuplicateIcon } from './icons/DocumentDuplicateIcon';
+import { TrashIcon } from './icons/TrashIcon';
 
 interface TaskCardProps {
   task: Task;
   onUpdate: (id: string, updates: Partial<Task>) => void;
   onDelete: (id: string) => void;
+  onDuplicate: (id: string) => void;
   onEdit?: (task: Task) => void;
 }
 
@@ -58,10 +63,15 @@ export const TaskCard = ({
   task,
   onUpdate,
   onDelete,
+  onDuplicate,
   onEdit,
 }: TaskCardProps) => {
   const handleDelete = () => {
     onDelete(task.id);
+  };
+
+  const handleDuplicate = () => {
+    onDuplicate(task.id);
   };
 
   const handleEdit = () => {
@@ -161,26 +171,40 @@ export const TaskCard = ({
         </div>
       )}
 
-      <div className="flex gap-2 flex-col sm:flex-row mt-auto">
+      <div className="flex flex-wrap gap-1.5 mt-auto border-t border-gray-200 pt-3">
         <button
           onClick={handleStatusToggle}
-          className="flex-1 bg-blue-500 text-white py-2.5 px-4 rounded-md text-sm font-semibold hover:bg-blue-600 transition-colors shadow-sm"
+          className="flex-1 min-w-[100px] flex items-center justify-center gap-1.5 bg-blue-500 text-white py-2 px-3 rounded-md text-xs font-medium hover:bg-blue-600 transition-colors"
+          title="Change to next status"
         >
-          Next Status
+          <CheckCircleIcon className="shrink-0" />
+          <span>Status</span>
         </button>
         {onEdit && (
           <button
             onClick={handleEdit}
-            className="flex-1 bg-green-500 text-white py-2.5 px-4 rounded-md text-sm font-semibold hover:bg-green-600 transition-colors shadow-sm"
+            className="flex-1 min-w-[100px] flex items-center justify-center gap-1.5 bg-green-500 text-white py-2 px-3 rounded-md text-xs font-medium hover:bg-green-600 transition-colors"
+            title="Edit this task"
           >
-            Edit
+            <PencilIcon className="shrink-0" />
+            <span>Edit</span>
           </button>
         )}
         <button
-          onClick={handleDelete}
-          className="bg-red-500 text-white py-2.5 px-4 rounded-md text-sm font-semibold hover:bg-red-600 transition-colors shadow-sm"
+          onClick={handleDuplicate}
+          className="flex-1 min-w-[100px] flex items-center justify-center gap-1.5 bg-purple-500 text-white py-2 px-3 rounded-md text-xs font-medium hover:bg-purple-600 transition-colors"
+          title="Duplicate this task"
         >
-          Delete
+          <DocumentDuplicateIcon className="shrink-0" />
+          <span className="hidden sm:inline">Duplicate</span>
+        </button>
+        <button
+          onClick={handleDelete}
+          className="flex-1 min-w-[100px] flex items-center justify-center gap-1.5 bg-red-500 text-white py-2 px-3 rounded-md text-xs font-medium hover:bg-red-600 transition-colors"
+          title="Delete this task"
+        >
+          <TrashIcon className="shrink-0" />
+          <span className="hidden sm:inline">Delete</span>
         </button>
       </div>
     </div>

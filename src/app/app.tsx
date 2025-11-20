@@ -15,8 +15,15 @@ import {
 import { importTasksFromFile } from '../utils/importHelpers';
 
 export function App() {
-  const { tasks, loading, addTask, updateTask, deleteTask, importTasks } =
-    useTasks();
+  const {
+    tasks,
+    loading,
+    addTask,
+    updateTask,
+    deleteTask,
+    duplicateTask,
+    importTasks,
+  } = useTasks();
   const [showForm, setShowForm] = useState(false);
   const [filters, setFilters] = useState<TaskFilters>(DEFAULT_FILTERS);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
@@ -240,6 +247,7 @@ export function App() {
               tasks={filteredTasks}
               onUpdateTask={updateTask}
               onDeleteTask={deleteTask}
+              onDuplicateTask={duplicateTask}
               onEditTask={handleEditTask}
             />
           </div>
