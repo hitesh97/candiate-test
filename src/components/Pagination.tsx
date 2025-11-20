@@ -12,7 +12,7 @@ export const Pagination = ({
   itemsLabel = 'tasks',
 }: PaginationProps) => {
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(5);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
 
   const totalPages = Math.ceil(totalItems / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
@@ -54,7 +54,6 @@ export const Pagination = ({
           onChange={(e) => handleItemsPerPageChange(Number(e.target.value))}
           className="px-3 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
-          <option value={5}>5</option>
           <option value={10}>10</option>
           <option value={20}>20</option>
           <option value={30}>30</option>

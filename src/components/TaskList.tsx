@@ -1,12 +1,10 @@
-import { Task, TaskStatus } from '../types/task';
+import { Task } from '../types/task';
 import { TaskCard } from './TaskCard';
 import { Pagination } from './Pagination';
-import { useState, useTransition, useDeferredValue, useCallback } from 'react';
+import { useState, useTransition, useCallback } from 'react';
 
 interface TaskListProps {
   tasks: Task[];
-  filter: TaskStatus | 'all';
-  searchQuery: string;
   onUpdateTask: (id: string, updates: Partial<Task>) => void;
   onDeleteTask: (id: string) => void;
   onEditTask?: (task: Task) => void;
@@ -14,8 +12,6 @@ interface TaskListProps {
 
 export const TaskList = ({
   tasks,
-  filter,
-  searchQuery,
   onUpdateTask,
   onDeleteTask,
   onEditTask,
@@ -26,25 +22,9 @@ export const TaskList = ({
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [paginationRange, setPaginationRange] = useState({ start: 0, end: 5 });
   const [, startTransition] = useTransition();
-  const deferredSearchQuery = useDeferredValue(searchQuery);
-  const isStale = searchQuery !== deferredSearchQuery;
 
-  let filteredTasks = tasks;
-
-  if (filter !== 'all') {
-    filteredTasks = filteredTasks.filter((task) => task.status === filter);
-  }
-
-  if (deferredSearchQuery) {
-    const lowerQuery = deferredSearchQuery.toLowerCase();
-    filteredTasks = filteredTasks.filter(
-      (task) =>
-        task.title.toLowerCase().includes(lowerQuery) ||
-        task.description.toLowerCase().includes(lowerQuery)
-    );
-  }
-
-  const sortedTasks = [...filteredTasks].sort((a, b) => {
+  // Tasks are already filtered by parent component
+  const sortedTasks = [...tasks].sort((a, b) => {
     let comparison = 0;
 
     switch (sortBy) {
@@ -91,12 +71,9 @@ export const TaskList = ({
     if (tasks.length === 0) {
       message = 'No tasks yet';
       suggestion = 'Click "Add New Task" to create your first task!';
-    } else if (deferredSearchQuery) {
-      message = `No tasks match "${deferredSearchQuery}"`;
-      suggestion = 'Try a different search term';
-    } else if (filter !== 'all') {
-      message = `No tasks with status: ${filter}`;
-      suggestion = 'Try a different filter or create a new task';
+    } else {
+      message = 'No tasks match your filters';
+      suggestion = 'Try adjusting your filters or create a new task';
     }
 
     return (
@@ -168,11 +145,7 @@ export const TaskList = ({
         </div>
       </div>
 
-      <div
-        className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 transition-opacity duration-150 ${
-          isStale ? 'opacity-60' : 'opacity-100'
-        }`}
-      >
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 transition-opacity duration-150">
         {paginatedTasks.map((task) => (
           <TaskCard
             key={task.id}

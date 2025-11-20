@@ -1,295 +1,505 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
-import { userEvent } from '@testing-library/user-event';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import {
+  render,
+  screen,
+  fireEvent,
+  waitFor,
+  act,
+} from '@testing-library/react';
 import { TaskFilter } from './TaskFilter';
+import { Task } from '../types/task';
+
+const mockTasks: Task[] = [
+  {
+    id: '1',
+    title: 'Task 1',
+    description: 'Description 1',
+    status: 'todo',
+    priority: 'high',
+    tags: ['urgent', 'frontend'],
+    createdAt: '2025-01-01',
+    dueDate: '2025-12-31',
+  },
+  {
+    id: '2',
+    title: 'Task 2',
+    description: 'Description 2',
+    status: 'in-progress',
+    priority: 'medium',
+    tags: ['backend', 'api'],
+    createdAt: '2025-02-01',
+    dueDate: '2025-11-30',
+  },
+  {
+    id: '3',
+    title: 'Task 3',
+    description: 'Description 3',
+    status: 'done',
+    priority: 'low',
+    tags: ['documentation'],
+    createdAt: '2025-03-01',
+  },
+];
 
 describe('TaskFilter', () => {
-  let mockOnFilterChange: ReturnType<typeof vi.fn>;
-  let mockOnSearchChange: ReturnType<typeof vi.fn>;
+  let mockOnFiltersChange: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
-    mockOnFilterChange = vi.fn();
-    mockOnSearchChange = vi.fn();
+    mockOnFiltersChange = vi.fn();
+    localStorage.clear();
   });
 
-  afterEach(() => {
-    vi.restoreAllMocks();
-  });
-
-  it('should render search input with placeholder', () => {
-    render(
-      <TaskFilter
-        onFilterChange={mockOnFilterChange}
-        onSearchChange={mockOnSearchChange}
-      />
-    );
-
-    const searchInput = screen.getByPlaceholderText('Search tasks...');
-    expect(searchInput).toBeDefined();
-    expect(searchInput.tagName).toBe('INPUT');
-  });
-
-  it('should render all filter buttons', () => {
-    render(
-      <TaskFilter
-        onFilterChange={mockOnFilterChange}
-        onSearchChange={mockOnSearchChange}
-      />
-    );
-
-    expect(screen.getByRole('button', { name: /all tasks/i })).toBeDefined();
-    expect(screen.getByRole('button', { name: /todo/i })).toBeDefined();
-    expect(screen.getByRole('button', { name: /in progress/i })).toBeDefined();
-    expect(screen.getByRole('button', { name: /done/i })).toBeDefined();
-  });
-
-  it('should highlight active filter button', () => {
-    render(
-      <TaskFilter
-        onFilterChange={mockOnFilterChange}
-        onSearchChange={mockOnSearchChange}
-        activeFilter="todo"
-      />
-    );
-
-    const todoButton = screen.getByRole('button', { name: /todo/i });
-    expect(todoButton.className).toContain('bg-blue-500');
-    expect(todoButton.className).toContain('text-white');
-  });
-
-  it('should highlight "All Tasks" button when activeFilter is "all"', () => {
-    render(
-      <TaskFilter
-        onFilterChange={mockOnFilterChange}
-        onSearchChange={mockOnSearchChange}
-        activeFilter="all"
-      />
-    );
-
-    const allButton = screen.getByRole('button', { name: /all tasks/i });
-    expect(allButton.className).toContain('bg-blue-500');
-    expect(allButton.className).toContain('text-white');
-  });
-
-  it('should apply inactive styles to non-active filter buttons', () => {
-    render(
-      <TaskFilter
-        onFilterChange={mockOnFilterChange}
-        onSearchChange={mockOnSearchChange}
-        activeFilter="todo"
-      />
-    );
-
-    const allButton = screen.getByRole('button', { name: /all tasks/i });
-    expect(allButton.className).toContain('bg-gray-200');
-    expect(allButton.className).toContain('text-gray-700');
-  });
-
-  it('should call onFilterChange when filter button is clicked', async () => {
-    const user = userEvent.setup();
-    render(
-      <TaskFilter
-        onFilterChange={mockOnFilterChange}
-        onSearchChange={mockOnSearchChange}
-      />
-    );
-
-    const todoButton = screen.getByRole('button', { name: /todo/i });
-    await user.click(todoButton);
-
-    expect(mockOnFilterChange).toHaveBeenCalledTimes(1);
-    expect(mockOnFilterChange).toHaveBeenCalledWith('todo');
-  });
-
-  it('should call onFilterChange with "in-progress" when In Progress button is clicked', async () => {
-    const user = userEvent.setup();
-    render(
-      <TaskFilter
-        onFilterChange={mockOnFilterChange}
-        onSearchChange={mockOnSearchChange}
-      />
-    );
-
-    const inProgressButton = screen.getByRole('button', {
-      name: /in progress/i,
+  describe('Search Input', () => {
+    it('should render search input', () => {
+      render(
+        <TaskFilter onFiltersChange={mockOnFiltersChange} tasks={mockTasks} />
+      );
+      expect(screen.getByPlaceholderText('Search tasks...')).toBeDefined();
     });
-    await user.click(inProgressButton);
 
-    expect(mockOnFilterChange).toHaveBeenCalledWith('in-progress');
+    it('should update search input value when typing', () => {
+      render(
+        <TaskFilter onFiltersChange={mockOnFiltersChange} tasks={mockTasks} />
+      );
+
+      const searchInput = screen.getByPlaceholderText('Search tasks...');
+      fireEvent.change(searchInput, { target: { value: 'test' } });
+
+      expect((searchInput as HTMLInputElement).value).toBe('test');
+    });
+
+    it('should debounce search and call onFiltersChange after 300ms', async () => {
+      render(
+        <TaskFilter onFiltersChange={mockOnFiltersChange} tasks={mockTasks} />
+      );
+
+      const searchInput = screen.getByPlaceholderText('Search tasks...');
+      fireEvent.change(searchInput, { target: { value: 'test' } });
+
+      // Verify input value changed immediately
+      expect((searchInput as HTMLInputElement).value).toBe('test');
+
+      // Wait for debounced callback (300ms + buffer)
+      await waitFor(
+        () => {
+          expect(mockOnFiltersChange).toHaveBeenCalledWith(
+            expect.objectContaining({ searchQuery: 'test' })
+          );
+        },
+        { timeout: 500 }
+      );
+    });
+
+    it('should show clear button when search has content', () => {
+      render(
+        <TaskFilter onFiltersChange={mockOnFiltersChange} tasks={mockTasks} />
+      );
+
+      const searchInput = screen.getByPlaceholderText('Search tasks...');
+      fireEvent.change(searchInput, { target: { value: 'test' } });
+
+      // Check that clear button (X icon) exists
+      const buttons = screen.getAllByRole('button');
+      const clearButton = buttons.find((btn) =>
+        btn.querySelector('path[d*="M6 18L18 6"]')
+      );
+      expect(clearButton).toBeDefined();
+    });
+
+    it('should clear search when clear button is clicked', async () => {
+      render(
+        <TaskFilter onFiltersChange={mockOnFiltersChange} tasks={mockTasks} />
+      );
+
+      const searchInput = screen.getByPlaceholderText('Search tasks...');
+      fireEvent.change(searchInput, { target: { value: 'test' } });
+
+      const buttons = screen.getAllByRole('button');
+      const clearButton = buttons.find((btn) =>
+        btn.querySelector('path[d*="M6 18L18 6"]')
+      );
+
+      if (clearButton) {
+        fireEvent.click(clearButton);
+      }
+
+      expect((searchInput as HTMLInputElement).value).toBe('');
+    });
   });
 
-  it('should call onFilterChange with "done" when Done button is clicked', async () => {
-    const user = userEvent.setup();
-    render(
-      <TaskFilter
-        onFilterChange={mockOnFilterChange}
-        onSearchChange={mockOnSearchChange}
-      />
-    );
+  describe('Status Filter', () => {
+    it('should render collapsible status filter section', () => {
+      render(
+        <TaskFilter onFiltersChange={mockOnFiltersChange} tasks={mockTasks} />
+      );
+      expect(screen.getByText(/^Status/)).toBeDefined();
+    });
 
-    const doneButton = screen.getByRole('button', { name: /done/i });
-    await user.click(doneButton);
+    it('should expand status filter when clicked', () => {
+      render(
+        <TaskFilter onFiltersChange={mockOnFiltersChange} tasks={mockTasks} />
+      );
 
-    expect(mockOnFilterChange).toHaveBeenCalledWith('done');
+      const statusButton = screen.getByText(/^Status/);
+      fireEvent.click(statusButton);
+
+      expect(screen.getByText('To Do')).toBeDefined();
+      expect(screen.getByText('In Progress')).toBeDefined();
+      expect(screen.getByText('Done')).toBeDefined();
+    });
+
+    it('should toggle status selection', async () => {
+      render(
+        <TaskFilter onFiltersChange={mockOnFiltersChange} tasks={mockTasks} />
+      );
+
+      fireEvent.click(screen.getByText(/^Status/));
+      const todoCheckbox = screen.getByText('To Do');
+      fireEvent.click(todoCheckbox);
+
+      // Wait for debounced callback
+      await waitFor(
+        () => {
+          expect(mockOnFiltersChange).toHaveBeenCalledWith(
+            expect.objectContaining({ statuses: ['todo'] })
+          );
+        },
+        { timeout: 500 }
+      );
+    });
+
+    it('should show active count in status header', async () => {
+      render(
+        <TaskFilter onFiltersChange={mockOnFiltersChange} tasks={mockTasks} />
+      );
+
+      fireEvent.click(screen.getByText(/^Status/));
+      fireEvent.click(screen.getByText('To Do'));
+
+      // Wait for status count to update
+      await waitFor(
+        () => {
+          expect(screen.getByText(/Status \(1\)/)).toBeDefined();
+        },
+        { timeout: 500 }
+      );
+    });
   });
 
-  it('should call onFilterChange with "all" when All Tasks button is clicked', async () => {
-    const user = userEvent.setup();
-    render(
-      <TaskFilter
-        onFilterChange={mockOnFilterChange}
-        onSearchChange={mockOnSearchChange}
-      />
-    );
+  describe('Priority Filter', () => {
+    it('should render collapsible priority filter section', () => {
+      render(
+        <TaskFilter onFiltersChange={mockOnFiltersChange} tasks={mockTasks} />
+      );
+      expect(screen.getByText(/^Priority/i)).toBeDefined();
+    });
 
-    const allButton = screen.getByRole('button', { name: /all tasks/i });
-    await user.click(allButton);
+    it('should expand priority filter when clicked', () => {
+      render(
+        <TaskFilter onFiltersChange={mockOnFiltersChange} tasks={mockTasks} />
+      );
 
-    expect(mockOnFilterChange).toHaveBeenCalledWith('all');
+      fireEvent.click(screen.getByText(/^Priority/i));
+
+      expect(screen.getByText('High')).toBeDefined();
+      expect(screen.getByText('Medium')).toBeDefined();
+      expect(screen.getByText('Low')).toBeDefined();
+    });
+
+    it('should toggle priority selection', async () => {
+      render(
+        <TaskFilter onFiltersChange={mockOnFiltersChange} tasks={mockTasks} />
+      );
+
+      fireEvent.click(screen.getByText(/^Priority/i));
+      fireEvent.click(screen.getByText('High'));
+
+      // Wait for debounced callback
+      await waitFor(
+        () => {
+          expect(mockOnFiltersChange).toHaveBeenCalledWith(
+            expect.objectContaining({ priorities: ['high'] })
+          );
+        },
+        { timeout: 500 }
+      );
+    });
   });
 
-  it('should update search input value when typing', async () => {
-    const user = userEvent.setup();
-    render(
-      <TaskFilter
-        onFilterChange={mockOnFilterChange}
-        onSearchChange={mockOnSearchChange}
-      />
-    );
+  describe('Tags Filter', () => {
+    it('should render tags filter when tasks have tags', () => {
+      render(
+        <TaskFilter onFiltersChange={mockOnFiltersChange} tasks={mockTasks} />
+      );
+      expect(screen.getByText(/^Tags/i)).toBeDefined();
+    });
 
-    const searchInput = screen.getByPlaceholderText('Search tasks...');
-    await user.type(searchInput, 'test query');
+    it('should not render tags filter when no tasks have tags', () => {
+      const tasksWithoutTags: Task[] = [
+        {
+          id: '1',
+          title: 'Task',
+          description: 'Desc',
+          status: 'todo',
+          priority: 'low',
+          tags: [],
+          createdAt: '2025-01-01',
+        },
+      ];
 
-    expect((searchInput as HTMLInputElement).value).toBe('test query');
+      render(
+        <TaskFilter
+          onFiltersChange={mockOnFiltersChange}
+          tasks={tasksWithoutTags}
+        />
+      );
+
+      expect(screen.queryByText(/^Tags/i)).toBeNull();
+    });
+
+    it('should display unique tags from all tasks', () => {
+      render(
+        <TaskFilter onFiltersChange={mockOnFiltersChange} tasks={mockTasks} />
+      );
+
+      fireEvent.click(screen.getByText(/^Tags/i));
+
+      expect(screen.getByText('#api')).toBeDefined();
+      expect(screen.getByText('#backend')).toBeDefined();
+      expect(screen.getByText('#documentation')).toBeDefined();
+      expect(screen.getByText('#frontend')).toBeDefined();
+      expect(screen.getByText('#urgent')).toBeDefined();
+    });
+
+    it('should toggle tag selection', async () => {
+      render(
+        <TaskFilter onFiltersChange={mockOnFiltersChange} tasks={mockTasks} />
+      );
+
+      fireEvent.click(screen.getByText(/^Tags/i));
+      fireEvent.click(screen.getByText('#api'));
+
+      // Wait for debounced callback
+      await waitFor(
+        () => {
+          expect(mockOnFiltersChange).toHaveBeenCalledWith(
+            expect.objectContaining({ tags: ['api'] })
+          );
+        },
+        { timeout: 500 }
+      );
+    });
   });
 
-  it('should debounce search and call onSearchChange after 300ms', async () => {
-    vi.useFakeTimers();
-    render(
-      <TaskFilter
-        onFilterChange={mockOnFilterChange}
-        onSearchChange={mockOnSearchChange}
-      />
-    );
+  describe('Date Range Filter', () => {
+    it('should render date range filter section', () => {
+      render(
+        <TaskFilter onFiltersChange={mockOnFiltersChange} tasks={mockTasks} />
+      );
+      expect(screen.getByText(/^Date Range/i)).toBeDefined();
+    });
 
-    const searchInput = screen.getByPlaceholderText(
-      'Search tasks...'
-    ) as HTMLInputElement;
+    it('should expand date range filter when clicked', () => {
+      render(
+        <TaskFilter onFiltersChange={mockOnFiltersChange} tasks={mockTasks} />
+      );
 
-    // Use fireEvent which properly triggers React onChange
-    fireEvent.change(searchInput, { target: { value: 'test' } });
+      fireEvent.click(screen.getByText(/^Date Range/i));
 
-    // Should not be called immediately
-    expect(mockOnSearchChange).not.toHaveBeenCalled();
+      expect(screen.getByText('Created Date')).toBeDefined();
+      expect(screen.getByText('Due Date')).toBeDefined();
+    });
 
-    // Fast-forward time by 300ms
-    await vi.advanceTimersByTimeAsync(300);
+    it('should allow setting date range type', async () => {
+      render(
+        <TaskFilter onFiltersChange={mockOnFiltersChange} tasks={mockTasks} />
+      );
 
-    // Should be called after debounce delay
-    expect(mockOnSearchChange).toHaveBeenCalledTimes(1);
-    expect(mockOnSearchChange).toHaveBeenCalledWith('test');
+      fireEvent.click(screen.getByText(/^Date Range/i));
+      fireEvent.click(screen.getByText('Created Date'));
 
-    vi.useRealTimers();
+      // Wait for debounced callback
+      await waitFor(
+        () => {
+          expect(mockOnFiltersChange).toHaveBeenCalledWith(
+            expect.objectContaining({
+              dateRange: expect.objectContaining({ type: 'created' }),
+            })
+          );
+        },
+        { timeout: 500 }
+      );
+    });
+
+    it('should show clear date range button when date is set', () => {
+      render(
+        <TaskFilter onFiltersChange={mockOnFiltersChange} tasks={mockTasks} />
+      );
+
+      fireEvent.click(screen.getByText(/^Date Range/i));
+      fireEvent.click(screen.getByText('Created Date'));
+
+      expect(screen.getByText('Clear Date Range')).toBeDefined();
+    });
   });
 
-  it('should cancel previous debounce timer when typing rapidly', async () => {
-    vi.useFakeTimers();
-    render(
-      <TaskFilter
-        onFilterChange={mockOnFilterChange}
-        onSearchChange={mockOnSearchChange}
-      />
-    );
+  describe('Filter Presets', () => {
+    it('should render presets section', () => {
+      render(
+        <TaskFilter onFiltersChange={mockOnFiltersChange} tasks={mockTasks} />
+      );
+      expect(screen.getByText(/^Saved Presets/i)).toBeDefined();
+    });
 
-    const searchInput = screen.getByPlaceholderText(
-      'Search tasks...'
-    ) as HTMLInputElement;
+    it('should show save preset button when expanded', () => {
+      render(
+        <TaskFilter onFiltersChange={mockOnFiltersChange} tasks={mockTasks} />
+      );
 
-    // Type first character
-    fireEvent.change(searchInput, { target: { value: 't' } });
-    await vi.advanceTimersByTimeAsync(100);
+      fireEvent.click(screen.getByText(/^Saved Presets/i));
 
-    // Type second character before debounce completes
-    fireEvent.change(searchInput, { target: { value: 'te' } });
-    await vi.advanceTimersByTimeAsync(100);
+      expect(screen.getByText('+ Save Current Filters')).toBeDefined();
+    });
 
-    // Type third character
-    fireEvent.change(searchInput, { target: { value: 'tes' } });
-    await vi.advanceTimersByTimeAsync(100);
+    it('should open dialog when save preset is clicked', () => {
+      render(
+        <TaskFilter onFiltersChange={mockOnFiltersChange} tasks={mockTasks} />
+      );
 
-    // At this point, only 300ms total, but multiple inputs
-    expect(mockOnSearchChange).not.toHaveBeenCalled();
+      fireEvent.click(screen.getByText(/^Saved Presets/i));
+      fireEvent.click(screen.getByText('+ Save Current Filters'));
 
-    // Complete the debounce delay from last input
-    await vi.advanceTimersByTimeAsync(200);
+      expect(screen.getByText('Save Filter Preset')).toBeDefined();
+      expect(screen.getByPlaceholderText('Enter preset name...')).toBeDefined();
+    });
 
-    // Should only be called once with the final value
-    expect(mockOnSearchChange).toHaveBeenCalledTimes(1);
-    expect(mockOnSearchChange).toHaveBeenCalledWith('tes');
+    it('should save preset to localStorage', () => {
+      render(
+        <TaskFilter onFiltersChange={mockOnFiltersChange} tasks={mockTasks} />
+      );
 
-    vi.useRealTimers();
+      fireEvent.click(screen.getByText(/^Saved Presets/i));
+      fireEvent.click(screen.getByText('+ Save Current Filters'));
+
+      const input = screen.getByPlaceholderText('Enter preset name...');
+      fireEvent.change(input, { target: { value: 'My Preset' } });
+
+      fireEvent.click(screen.getByText('Save'));
+
+      const stored = localStorage.getItem('task-filter-presets');
+      expect(stored).toBeTruthy();
+
+      const presets = JSON.parse(stored!);
+      expect(presets).toHaveLength(1);
+      expect(presets[0].name).toBe('My Preset');
+    });
   });
 
-  it('should call onSearchChange with empty string when search is cleared', async () => {
-    vi.useFakeTimers();
-    render(
-      <TaskFilter
-        onFilterChange={mockOnFilterChange}
-        onSearchChange={mockOnSearchChange}
-      />
-    );
+  describe('Clear All Filters', () => {
+    it('should show active filter count', async () => {
+      render(
+        <TaskFilter onFiltersChange={mockOnFiltersChange} tasks={mockTasks} />
+      );
 
-    const searchInput = screen.getByPlaceholderText(
-      'Search tasks...'
-    ) as HTMLInputElement;
+      fireEvent.click(screen.getByText(/^Status/));
+      fireEvent.click(screen.getByText('To Do'));
 
-    // Type something
-    fireEvent.change(searchInput, { target: { value: 'test' } });
-    await vi.advanceTimersByTimeAsync(300);
-    expect(mockOnSearchChange).toHaveBeenCalledWith('test');
+      // Wait for filter count to update
+      await waitFor(
+        () => {
+          expect(screen.getByText(/1 active/i)).toBeDefined();
+        },
+        { timeout: 500 }
+      );
+    });
 
-    // Clear the input
-    fireEvent.change(searchInput, { target: { value: '' } });
-    await vi.advanceTimersByTimeAsync(300);
+    it('should show Clear All button when filters are active', async () => {
+      render(
+        <TaskFilter onFiltersChange={mockOnFiltersChange} tasks={mockTasks} />
+      );
 
-    expect(mockOnSearchChange).toHaveBeenCalledWith('');
+      fireEvent.click(screen.getByText(/^Status/));
+      fireEvent.click(screen.getByText('To Do'));
 
-    vi.useRealTimers();
+      // Wait for Clear All button to appear
+      await waitFor(
+        () => {
+          expect(screen.getByText('Clear All')).toBeDefined();
+        },
+        { timeout: 500 }
+      );
+    });
+
+    it('should clear all filters when Clear All is clicked', async () => {
+      render(
+        <TaskFilter onFiltersChange={mockOnFiltersChange} tasks={mockTasks} />
+      );
+
+      // Set some filters
+      fireEvent.click(screen.getByText(/^Status/));
+      fireEvent.click(screen.getByText('To Do'));
+
+      await waitFor(
+        () => {
+          expect(screen.getByText('Clear All')).toBeDefined();
+        },
+        { timeout: 500 }
+      );
+
+      mockOnFiltersChange.mockClear();
+      // Clear all
+      fireEvent.click(screen.getByText('Clear All'));
+
+      await waitFor(
+        () => {
+          expect(mockOnFiltersChange).toHaveBeenCalledWith(
+            expect.objectContaining({
+              statuses: [],
+              priorities: [],
+              tags: [],
+            })
+          );
+        },
+        { timeout: 500 }
+      );
+    });
   });
 
-  it('should default activeFilter to "all" when not provided', () => {
-    render(
-      <TaskFilter
-        onFilterChange={mockOnFilterChange}
-        onSearchChange={mockOnSearchChange}
-      />
-    );
+  describe('Task Count Display', () => {
+    it('should display task count when provided', () => {
+      render(
+        <TaskFilter
+          onFiltersChange={mockOnFiltersChange}
+          tasks={mockTasks}
+          taskCount={5}
+        />
+      );
 
-    const allButton = screen.getByRole('button', { name: /all tasks/i });
-    expect(allButton.className).toContain('bg-blue-500');
-  });
+      expect(screen.getByText('Showing 5 tasks')).toBeDefined();
+    });
 
-  it('should handle multiple filter changes', async () => {
-    const user = userEvent.setup();
-    render(
-      <TaskFilter
-        onFilterChange={mockOnFilterChange}
-        onSearchChange={mockOnSearchChange}
-      />
-    );
+    it('should display singular "task" for count of 1', () => {
+      render(
+        <TaskFilter
+          onFiltersChange={mockOnFiltersChange}
+          tasks={mockTasks}
+          taskCount={1}
+        />
+      );
 
-    // Click todo
-    await user.click(screen.getByRole('button', { name: /todo/i }));
-    expect(mockOnFilterChange).toHaveBeenCalledWith('todo');
+      expect(screen.getByText('Showing 1 task')).toBeDefined();
+    });
 
-    // Click in-progress
-    await user.click(screen.getByRole('button', { name: /in progress/i }));
-    expect(mockOnFilterChange).toHaveBeenCalledWith('in-progress');
+    it('should display "No tasks found" when count is 0', () => {
+      render(
+        <TaskFilter
+          onFiltersChange={mockOnFiltersChange}
+          tasks={mockTasks}
+          taskCount={0}
+        />
+      );
 
-    // Click done
-    await user.click(screen.getByRole('button', { name: /done/i }));
-    expect(mockOnFilterChange).toHaveBeenCalledWith('done');
-
-    expect(mockOnFilterChange).toHaveBeenCalledTimes(3);
+      expect(screen.getByText('No tasks found')).toBeDefined();
+    });
   });
 });

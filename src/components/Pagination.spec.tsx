@@ -21,7 +21,7 @@ describe('Pagination', () => {
   it('should render pagination controls when there are more items than fit on one page', () => {
     render(<Pagination totalItems={25} onPaginate={mockOnPaginate} />);
 
-    expect(screen.getByText('Showing 1-5 of 25 tasks')).toBeDefined();
+    expect(screen.getByText('Showing 1-10 of 25 tasks')).toBeDefined();
     expect(screen.getByLabelText('Next page')).toBeDefined();
     expect(screen.getByLabelText('Previous page')).toBeDefined();
     expect(screen.getByLabelText('First page')).toBeDefined();
@@ -31,7 +31,7 @@ describe('Pagination', () => {
   it('should call onPaginate with initial pagination on mount', () => {
     render(<Pagination totalItems={25} onPaginate={mockOnPaginate} />);
 
-    expect(mockOnPaginate).toHaveBeenCalledWith(0, 5);
+    expect(mockOnPaginate).toHaveBeenCalledWith(0, 10);
   });
 
   it('should navigate to next page when next button is clicked', async () => {
@@ -42,8 +42,8 @@ describe('Pagination', () => {
     const nextButton = screen.getByLabelText('Next page');
     await user.click(nextButton);
 
-    expect(screen.getByText('Showing 6-10 of 25 tasks')).toBeDefined();
-    expect(mockOnPaginate).toHaveBeenCalledWith(5, 10);
+    expect(screen.getByText('Showing 11-20 of 25 tasks')).toBeDefined();
+    expect(mockOnPaginate).toHaveBeenCalledWith(10, 20);
   });
 
   it('should navigate to previous page when previous button is clicked', async () => {
@@ -59,8 +59,8 @@ describe('Pagination', () => {
     const prevButton = screen.getByLabelText('Previous page');
     await user.click(prevButton);
 
-    expect(screen.getByText('Showing 1-5 of 25 tasks')).toBeDefined();
-    expect(mockOnPaginate).toHaveBeenCalledWith(0, 5);
+    expect(screen.getByText('Showing 1-10 of 25 tasks')).toBeDefined();
+    expect(mockOnPaginate).toHaveBeenCalledWith(0, 10);
   });
 
   it('should navigate to specific page when page number is clicked', async () => {
@@ -68,12 +68,12 @@ describe('Pagination', () => {
     render(<Pagination totalItems={25} onPaginate={mockOnPaginate} />);
 
     mockOnPaginate.mockClear();
-    // Click on page 5
-    const page5Button = screen.getByLabelText('Page 5');
-    await user.click(page5Button);
+    // Click on page 3 (last page with itemsPerPage=10)
+    const page3Button = screen.getByLabelText('Page 3');
+    await user.click(page3Button);
 
     expect(screen.getByText('Showing 21-25 of 25 tasks')).toBeDefined();
-    expect(mockOnPaginate).toHaveBeenCalledWith(20, 25);
+    expect(mockOnPaginate).toHaveBeenCalledWith(20, 30);
   });
 
   it('should navigate to first page when first page button is clicked', async () => {
@@ -90,8 +90,8 @@ describe('Pagination', () => {
     const firstButton = screen.getByLabelText('First page');
     await user.click(firstButton);
 
-    expect(screen.getByText('Showing 1-5 of 25 tasks')).toBeDefined();
-    expect(mockOnPaginate).toHaveBeenCalledWith(0, 5);
+    expect(screen.getByText('Showing 1-10 of 25 tasks')).toBeDefined();
+    expect(mockOnPaginate).toHaveBeenCalledWith(0, 10);
   });
 
   it('should navigate to last page when last page button is clicked', async () => {
@@ -103,9 +103,9 @@ describe('Pagination', () => {
     await user.click(lastButton);
 
     expect(screen.getByText('Showing 21-25 of 25 tasks')).toBeDefined();
-    expect(mockOnPaginate).toHaveBeenCalledWith(20, 25);
-    const page5Button = screen.getByLabelText('Page 5');
-    expect(page5Button.getAttribute('aria-current')).toBe('page');
+    expect(mockOnPaginate).toHaveBeenCalledWith(20, 30);
+    const page3Button = screen.getByLabelText('Page 3');
+    expect(page3Button.getAttribute('aria-current')).toBe('page');
   });
 
   it('should disable previous and first buttons on first page', () => {
@@ -142,15 +142,15 @@ describe('Pagination', () => {
     const user = userEvent.setup();
     render(<Pagination totalItems={25} onPaginate={mockOnPaginate} />);
 
-    expect(screen.getByText('Showing 1-5 of 25 tasks')).toBeDefined();
+    expect(screen.getByText('Showing 1-10 of 25 tasks')).toBeDefined();
 
     mockOnPaginate.mockClear();
-    // Change to 10 items per page
-    const selector = screen.getByDisplayValue('5') as HTMLSelectElement;
-    await user.selectOptions(selector, '10');
+    // Change to 20 items per page
+    const selector = screen.getByDisplayValue('10') as HTMLSelectElement;
+    await user.selectOptions(selector, '20');
 
-    expect(screen.getByText('Showing 1-10 of 25 tasks')).toBeDefined();
-    expect(mockOnPaginate).toHaveBeenCalledWith(0, 10);
+    expect(screen.getByText('Showing 1-20 of 25 tasks')).toBeDefined();
+    expect(mockOnPaginate).toHaveBeenCalledWith(0, 20);
   });
 
   it('should reset to page 1 when changing items per page', async () => {
@@ -160,16 +160,16 @@ describe('Pagination', () => {
     // Go to page 2
     const nextButton = screen.getByLabelText('Next page');
     await user.click(nextButton);
-    expect(screen.getByText('Showing 6-10 of 25 tasks')).toBeDefined();
+    expect(screen.getByText('Showing 11-20 of 25 tasks')).toBeDefined();
 
     mockOnPaginate.mockClear();
     // Change items per page
-    const selector = screen.getByDisplayValue('5') as HTMLSelectElement;
-    await user.selectOptions(selector, '10');
+    const selector = screen.getByDisplayValue('10') as HTMLSelectElement;
+    await user.selectOptions(selector, '20');
 
     // Should be back on page 1
-    expect(screen.getByText('Showing 1-10 of 25 tasks')).toBeDefined();
-    expect(mockOnPaginate).toHaveBeenCalledWith(0, 10);
+    expect(screen.getByText('Showing 1-20 of 25 tasks')).toBeDefined();
+    expect(mockOnPaginate).toHaveBeenCalledWith(0, 20);
   });
 
   it('should show ellipsis between non-consecutive page numbers', () => {
@@ -198,7 +198,7 @@ describe('Pagination', () => {
       />
     );
 
-    expect(screen.getByText('Showing 1-5 of 25 items')).toBeDefined();
+    expect(screen.getByText('Showing 1-10 of 25 items')).toBeDefined();
   });
 
   it('should update pagination when totalItems changes', () => {
@@ -206,12 +206,12 @@ describe('Pagination', () => {
       <Pagination totalItems={25} onPaginate={mockOnPaginate} />
     );
 
-    expect(screen.getByText('Showing 1-5 of 25 tasks')).toBeDefined();
+    expect(screen.getByText('Showing 1-10 of 25 tasks')).toBeDefined();
 
     mockOnPaginate.mockClear();
     rerender(<Pagination totalItems={15} onPaginate={mockOnPaginate} />);
 
-    expect(screen.getByText('Showing 1-5 of 15 tasks')).toBeDefined();
+    expect(screen.getByText('Showing 1-10 of 15 tasks')).toBeDefined();
   });
 
   it('should reset to page 1 when totalItems changes and current page exceeds new total pages', async () => {
@@ -220,17 +220,17 @@ describe('Pagination', () => {
       <Pagination totalItems={25} onPaginate={mockOnPaginate} />
     );
 
-    // Go to page 5
-    const page5Button = screen.getByLabelText('Page 5');
-    await user.click(page5Button);
+    // Go to page 3 (last page with itemsPerPage=10)
+    const page3Button = screen.getByLabelText('Page 3');
+    await user.click(page3Button);
     expect(screen.getByText('Showing 21-25 of 25 tasks')).toBeDefined();
 
     mockOnPaginate.mockClear();
-    // Reduce total items so page 5 no longer exists
-    rerender(<Pagination totalItems={8} onPaginate={mockOnPaginate} />);
+    // Reduce total items so page 3 no longer exists (8 items = 1 page, no pagination UI)
+    rerender(<Pagination totalItems={15} onPaginate={mockOnPaginate} />);
 
-    // Should reset to page 1
-    expect(screen.getByText('Showing 1-5 of 8 tasks')).toBeDefined();
+    // Should reset to page 1 (still shows pagination with 2 pages)
+    expect(screen.getByText('Showing 1-10 of 15 tasks')).toBeDefined();
   });
 
   it('should handle navigation with all page buttons', async () => {
@@ -245,16 +245,16 @@ describe('Pagination', () => {
     // Go to first page
     const firstButton = screen.getByLabelText('First page');
     await user.click(firstButton);
-    expect(screen.getByText('Showing 1-5 of 25 tasks')).toBeDefined();
+    expect(screen.getByText('Showing 1-10 of 25 tasks')).toBeDefined();
 
     // Go next
     const nextButton = screen.getByLabelText('Next page');
     await user.click(nextButton);
-    expect(screen.getByText('Showing 6-10 of 25 tasks')).toBeDefined();
+    expect(screen.getByText('Showing 11-20 of 25 tasks')).toBeDefined();
 
     // Go previous
     const prevButton = screen.getByLabelText('Previous page');
     await user.click(prevButton);
-    expect(screen.getByText('Showing 1-5 of 25 tasks')).toBeDefined();
+    expect(screen.getByText('Showing 1-10 of 25 tasks')).toBeDefined();
   });
 });

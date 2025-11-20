@@ -156,7 +156,7 @@ describe('TaskCard', () => {
     );
 
     const changeStatusButton = screen.getByRole('button', {
-      name: /change status/i,
+      name: /next status/i,
     });
     await user.click(changeStatusButton);
 
@@ -175,7 +175,7 @@ describe('TaskCard', () => {
     );
 
     const changeStatusButton = screen.getByRole('button', {
-      name: /change status/i,
+      name: /next status/i,
     });
 
     // Click 1: todo -> in-progress

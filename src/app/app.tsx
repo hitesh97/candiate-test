@@ -4,7 +4,8 @@ import { TaskForm } from '../components/TaskForm';
 import { TaskList } from '../components/TaskList';
 import { TaskFilter } from '../components/TaskFilter';
 import { Dialog } from '../components/Dialog';
-import { TaskStatus, Task } from '../types/task';
+import { Task } from '../types/task';
+import { TaskFilters, DEFAULT_FILTERS } from '../types/filter';
 import {
   downloadTasksAsJSON,
   downloadTasksAsCSV,
@@ -15,8 +16,7 @@ export function App() {
   const { tasks, loading, addTask, updateTask, deleteTask, importTasks } =
     useTasks();
   const [showForm, setShowForm] = useState(false);
-  const [filter, setFilter] = useState<TaskStatus | 'all'>('all');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [filters, setFilters] = useState<TaskFilters>(DEFAULT_FILTERS);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [showExportMenu, setShowExportMenu] = useState(false);
   const [importMessage, setImportMessage] = useState<{
@@ -40,27 +40,82 @@ export function App() {
     };
   }, [tasks]);
 
-  const filteredTaskCount = useMemo(() => {
-    let filtered = tasks;
+  const filteredTasks = useMemo(() => {
+    // Pre-compute values outside the filter loop for performance
+    const hasStatusFilter = filters.statuses.length > 0;
+    const hasSearchFilter = filters.searchQuery.length > 0;
+    const lowerQuery = hasSearchFilter ? filters.searchQuery.toLowerCase() : '';
+    const hasPriorityFilter = filters.priorities.length > 0;
+    const hasTagsFilter = filters.tags.length > 0;
+    const hasDateFilter = filters.dateRange !== null;
 
-    // Apply status filter
-    if (filter !== 'all') {
-      filtered = filtered.filter((task) => task.status === filter);
+    // Pre-compute date filter values once
+    let dateFilterType: 'created' | 'due' | null = null;
+    let startDate: Date | null = null;
+    let endDate: Date | null = null;
+    let startTime = 0;
+    let endTime = 0;
+
+    if (hasDateFilter && filters.dateRange) {
+      dateFilterType = filters.dateRange.type;
+      if (filters.dateRange.start) {
+        startDate = new Date(filters.dateRange.start);
+        startTime = startDate.getTime();
+      }
+      if (filters.dateRange.end) {
+        endDate = new Date(filters.dateRange.end);
+        endTime = endDate.getTime();
+      }
     }
 
-    // Apply search filter
-    if (searchQuery) {
-      const lowerQuery = searchQuery.toLowerCase();
-      filtered = filtered.filter(
-        (task) =>
-          task.title.toLowerCase().includes(lowerQuery) ||
-          task.description.toLowerCase().includes(lowerQuery) ||
-          task.tags?.some((tag) => tag.toLowerCase().includes(lowerQuery))
-      );
-    }
+    // Single-pass filter combining all conditions
+    return tasks.filter((task) => {
+      // Status filter
+      if (hasStatusFilter && !filters.statuses.includes(task.status)) {
+        return false;
+      }
 
-    return filtered.length;
-  }, [tasks, filter, searchQuery]);
+      // Search filter
+      if (hasSearchFilter) {
+        const titleMatch = task.title.toLowerCase().includes(lowerQuery);
+        const descMatch = task.description.toLowerCase().includes(lowerQuery);
+        const tagMatch = task.tags?.some((tag) =>
+          tag.toLowerCase().includes(lowerQuery)
+        );
+        if (!titleMatch && !descMatch && !tagMatch) {
+          return false;
+        }
+      }
+
+      // Priority filter
+      if (hasPriorityFilter && !filters.priorities.includes(task.priority)) {
+        return false;
+      }
+
+      // Tags filter
+      if (
+        hasTagsFilter &&
+        !filters.tags.some((filterTag) => task.tags.includes(filterTag))
+      ) {
+        return false;
+      }
+
+      // Date range filter
+      if (hasDateFilter && dateFilterType) {
+        const dateStr =
+          dateFilterType === 'created' ? task.createdAt : task.dueDate;
+        if (!dateStr) return false;
+
+        const taskTime = new Date(dateStr).getTime();
+        if (startDate && taskTime < startTime) return false;
+        if (endDate && taskTime > endTime) return false;
+      }
+
+      return true;
+    });
+  }, [tasks, filters]);
+
+  const filteredTaskCount = filteredTasks.length;
 
   const handleEditTask = (task: Task) => {
     setEditingTask(task);
@@ -269,9 +324,8 @@ export function App() {
           {/* Filter */}
           <div className="lg:w-80 lg:shrink-0">
             <TaskFilter
-              onFilterChange={setFilter}
-              onSearchChange={setSearchQuery}
-              activeFilter={filter}
+              onFiltersChange={setFilters}
+              tasks={tasks}
               taskCount={filteredTaskCount}
             />
           </div>
@@ -279,9 +333,7 @@ export function App() {
           {/* Task List */}
           <div className="flex-1">
             <TaskList
-              tasks={tasks}
-              filter={filter}
-              searchQuery={searchQuery}
+              tasks={filteredTasks}
               onUpdateTask={updateTask}
               onDeleteTask={deleteTask}
               onEditTask={handleEditTask}

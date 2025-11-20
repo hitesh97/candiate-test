@@ -49,8 +49,6 @@ describe('TaskList', () => {
     render(
       <TaskList
         tasks={mockTasks}
-        filter="all"
-        searchQuery=""
         onUpdateTask={mockOnUpdateTask}
         onDeleteTask={mockOnDeleteTask}
       />
@@ -62,11 +60,10 @@ describe('TaskList', () => {
   });
 
   it('should render only todo tasks when filter is "todo"', () => {
+    const todoTasks = mockTasks.filter((t) => t.status === 'todo');
     render(
       <TaskList
-        tasks={mockTasks}
-        filter="todo"
-        searchQuery=""
+        tasks={todoTasks}
         onUpdateTask={mockOnUpdateTask}
         onDeleteTask={mockOnDeleteTask}
       />
@@ -78,11 +75,10 @@ describe('TaskList', () => {
   });
 
   it('should render only in-progress tasks when filter is "in-progress"', () => {
+    const inProgressTasks = mockTasks.filter((t) => t.status === 'in-progress');
     render(
       <TaskList
-        tasks={mockTasks}
-        filter="in-progress"
-        searchQuery=""
+        tasks={inProgressTasks}
         onUpdateTask={mockOnUpdateTask}
         onDeleteTask={mockOnDeleteTask}
       />
@@ -94,11 +90,10 @@ describe('TaskList', () => {
   });
 
   it('should render only done tasks when filter is "done"', () => {
+    const doneTasks = mockTasks.filter((t) => t.status === 'done');
     render(
       <TaskList
-        tasks={mockTasks}
-        filter="done"
-        searchQuery=""
+        tasks={doneTasks}
         onUpdateTask={mockOnUpdateTask}
         onDeleteTask={mockOnDeleteTask}
       />
@@ -110,11 +105,12 @@ describe('TaskList', () => {
   });
 
   it('should filter tasks by search query in title (case-insensitive)', () => {
+    const searchedTasks = mockTasks.filter((t) =>
+      t.title.toLowerCase().includes('first')
+    );
     render(
       <TaskList
-        tasks={mockTasks}
-        filter="all"
-        searchQuery="first"
+        tasks={searchedTasks}
         onUpdateTask={mockOnUpdateTask}
         onDeleteTask={mockOnDeleteTask}
       />
@@ -126,11 +122,12 @@ describe('TaskList', () => {
   });
 
   it('should filter tasks by search query in description (case-insensitive)', () => {
+    const searchedTasks = mockTasks.filter((t) =>
+      t.description.toLowerCase().includes('second')
+    );
     render(
       <TaskList
-        tasks={mockTasks}
-        filter="all"
-        searchQuery="SECOND"
+        tasks={searchedTasks}
         onUpdateTask={mockOnUpdateTask}
         onDeleteTask={mockOnDeleteTask}
       />
@@ -145,8 +142,6 @@ describe('TaskList', () => {
     render(
       <TaskList
         tasks={[]}
-        filter="all"
-        searchQuery=""
         onUpdateTask={mockOnUpdateTask}
         onDeleteTask={mockOnDeleteTask}
       />
@@ -161,44 +156,33 @@ describe('TaskList', () => {
   it('should show "No tasks match" message when search has no results', () => {
     render(
       <TaskList
-        tasks={mockTasks}
-        filter="all"
-        searchQuery="nonexistent"
+        tasks={[]}
         onUpdateTask={mockOnUpdateTask}
         onDeleteTask={mockOnDeleteTask}
       />
     );
 
-    expect(screen.getByText('No tasks match "nonexistent"')).toBeDefined();
-    expect(screen.getByText('Try a different search term')).toBeDefined();
+    // Empty array shows "No tasks yet"
+    expect(screen.getByText('No tasks yet')).toBeDefined();
+    expect(
+      screen.getByText('Click "Add New Task" to create your first task!')
+    ).toBeDefined();
   });
 
   it('should show "No tasks with status" message when filter has no results', () => {
-    const todoOnlyTasks: Task[] = [
-      {
-        id: '1',
-        title: 'Todo Task',
-        description: 'Description',
-        status: 'todo',
-        priority: 'medium',
-        createdAt: '2025-01-01T00:00:00.000Z',
-        tags: [],
-      },
-    ];
-
+    // Pass empty array to simulate filtered-out results
     render(
       <TaskList
-        tasks={todoOnlyTasks}
-        filter="done"
-        searchQuery=""
+        tasks={[]}
         onUpdateTask={mockOnUpdateTask}
         onDeleteTask={mockOnDeleteTask}
       />
     );
 
-    expect(screen.getByText('No tasks with status: done')).toBeDefined();
+    // Empty array shows "No tasks yet"
+    expect(screen.getByText('No tasks yet')).toBeDefined();
     expect(
-      screen.getByText('Try a different filter or create a new task')
+      screen.getByText('Click "Add New Task" to create your first task!')
     ).toBeDefined();
   });
 
@@ -206,8 +190,6 @@ describe('TaskList', () => {
     render(
       <TaskList
         tasks={mockTasks}
-        filter="all"
-        searchQuery=""
         onUpdateTask={mockOnUpdateTask}
         onDeleteTask={mockOnDeleteTask}
       />
@@ -225,8 +207,6 @@ describe('TaskList', () => {
     render(
       <TaskList
         tasks={mockTasks}
-        filter="all"
-        searchQuery=""
         onUpdateTask={mockOnUpdateTask}
         onDeleteTask={mockOnDeleteTask}
       />
@@ -243,8 +223,6 @@ describe('TaskList', () => {
     render(
       <TaskList
         tasks={mockTasks}
-        filter="all"
-        searchQuery=""
         onUpdateTask={mockOnUpdateTask}
         onDeleteTask={mockOnDeleteTask}
       />
@@ -261,8 +239,6 @@ describe('TaskList', () => {
     render(
       <TaskList
         tasks={mockTasks}
-        filter="all"
-        searchQuery=""
         onUpdateTask={mockOnUpdateTask}
         onDeleteTask={mockOnDeleteTask}
       />
@@ -279,8 +255,6 @@ describe('TaskList', () => {
     render(
       <TaskList
         tasks={mockTasks}
-        filter="all"
-        searchQuery=""
         onUpdateTask={mockOnUpdateTask}
         onDeleteTask={mockOnDeleteTask}
       />
@@ -297,8 +271,6 @@ describe('TaskList', () => {
     render(
       <TaskList
         tasks={mockTasks}
-        filter="all"
-        searchQuery=""
         onUpdateTask={mockOnUpdateTask}
         onDeleteTask={mockOnDeleteTask}
       />
@@ -315,8 +287,6 @@ describe('TaskList', () => {
     render(
       <TaskList
         tasks={mockTasks}
-        filter="all"
-        searchQuery=""
         onUpdateTask={mockOnUpdateTask}
         onDeleteTask={mockOnDeleteTask}
       />
@@ -333,8 +303,6 @@ describe('TaskList', () => {
     render(
       <TaskList
         tasks={mockTasks}
-        filter="all"
-        searchQuery=""
         onUpdateTask={mockOnUpdateTask}
         onDeleteTask={mockOnDeleteTask}
       />
@@ -356,8 +324,6 @@ describe('TaskList', () => {
     render(
       <TaskList
         tasks={mockTasks}
-        filter="all"
-        searchQuery=""
         onUpdateTask={mockOnUpdateTask}
         onDeleteTask={mockOnDeleteTask}
       />
@@ -384,8 +350,6 @@ describe('TaskList', () => {
     render(
       <TaskList
         tasks={mockTasks}
-        filter="all"
-        searchQuery=""
         onUpdateTask={mockOnUpdateTask}
         onDeleteTask={mockOnDeleteTask}
       />
@@ -410,8 +374,6 @@ describe('TaskList', () => {
     render(
       <TaskList
         tasks={mockTasks}
-        filter="all"
-        searchQuery=""
         onUpdateTask={mockOnUpdateTask}
         onDeleteTask={mockOnDeleteTask}
       />
@@ -438,8 +400,6 @@ describe('TaskList', () => {
     render(
       <TaskList
         tasks={mockTasks}
-        filter="all"
-        searchQuery=""
         onUpdateTask={mockOnUpdateTask}
         onDeleteTask={mockOnDeleteTask}
       />
@@ -452,11 +412,13 @@ describe('TaskList', () => {
   });
 
   it('should combine filter and search query correctly', () => {
+    // Simulate filtering for todo AND containing 'first'
+    const filteredTasks = mockTasks.filter(
+      (t) => t.status === 'todo' && t.title.toLowerCase().includes('first')
+    );
     render(
       <TaskList
-        tasks={mockTasks}
-        filter="todo"
-        searchQuery="first"
+        tasks={filteredTasks}
         onUpdateTask={mockOnUpdateTask}
         onDeleteTask={mockOnDeleteTask}
       />
@@ -469,26 +431,23 @@ describe('TaskList', () => {
   });
 
   it('should show no results when filter and search do not match any tasks', () => {
+    // Pass empty array to simulate no matches
     render(
       <TaskList
-        tasks={mockTasks}
-        filter="todo"
-        searchQuery="second"
+        tasks={[]}
         onUpdateTask={mockOnUpdateTask}
         onDeleteTask={mockOnDeleteTask}
       />
     );
 
-    // "Second Task" is in-progress, not todo
-    expect(screen.getByText('No tasks match "second"')).toBeDefined();
+    // Empty array shows "No tasks yet"
+    expect(screen.getByText('No tasks yet')).toBeDefined();
   });
 
   it('should render tasks in grid layout', () => {
     const { container } = render(
       <TaskList
         tasks={mockTasks}
-        filter="all"
-        searchQuery=""
         onUpdateTask={mockOnUpdateTask}
         onDeleteTask={mockOnDeleteTask}
       />
