@@ -51,6 +51,21 @@ export const useTasks = () => {
     setTasks((prev) => prev.filter((task) => task.id !== id));
   };
 
+  /**
+   * Import tasks in bulk, assigning new unique IDs to all imported tasks
+   * to prevent conflicts with existing tasks.
+   */
+  const importTasks = (importedTasks: Task[]) => {
+    setTasks((prev) => {
+      // Generate new IDs for all imported tasks
+      const tasksWithNewIds = importedTasks.map((task) => ({
+        ...task,
+        id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      }));
+      return [...prev, ...tasksWithNewIds];
+    });
+  };
+
   // Persist tasks whenever they change, but skip the initial load
   useEffect(() => {
     if (initialLoadRef.current) return;
@@ -72,5 +87,6 @@ export const useTasks = () => {
     addTask,
     updateTask,
     deleteTask,
+    importTasks,
   };
 };

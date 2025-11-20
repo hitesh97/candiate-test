@@ -516,6 +516,13 @@ Redesigned TaskCard with improved visual hierarchy: larger titles (text-lg to te
 **Improvements:**
 Implemented colored left borders (4px accent stripe) on TaskCards based on priority: red for high, yellow for medium, green for low. Added overdue detection logic that highlights overdue dates in red bold text with "OVERDUE" badge for incomplete tasks. Implemented animated pulse effect with red ring (ring-2 ring-red-300) for high-priority overdue tasks to draw immediate attention to critical deadlines. Visual indicators enable instant task prioritization through color-coded borders and dynamic animations, improving workflow efficiency and deadline awareness without requiring user interaction.
 
+### Export/Import Tasks Feature
+
+**Location:** `src/utils/exportHelpers.ts`, `src/utils/importHelpers.ts`, `src/hooks/useTasks.ts`, `src/app/app.tsx`
+
+**Improvements:**
+Implemented comprehensive data portability allowing users to export tasks to JSON or CSV formats and import tasks from files. Created downloadTasksAsJSON function that exports tasks with 2-space indentation and date-stamped filenames (e.g., tasks-export-2025-01-15.json). Built downloadTasksAsCSV with proper CSV escaping for commas, quotes, and newlines, handling tags as semicolon-separated values. Developed importTasksFromFile validator with TypeScript type guards ensuring only valid Task objects are imported, with detailed error messages for invalid data. Added importTasks method to useTasks hook that merges imported tasks with existing ones, preventing duplicates by ID. Created export dropdown menu (JSON/CSV options) and import button with hidden file input accepting .json and .csv files. Export uses Blob API with automatic download triggers, while import provides user feedback via alerts for success/failure. Feature enables task backup, data migration between devices, and integration with external tools through standard formats.
+
 ## Features Implemented
 
 ### Feature #1: Enhanced Form Validation
