@@ -3,6 +3,7 @@ import { useTasks } from '../hooks/useTasks';
 import { TaskForm } from '../components/TaskForm';
 import { TaskList } from '../components/TaskList';
 import { TaskFilter } from '../components/TaskFilter';
+import { TaskSorting } from '../components/TaskSorting';
 import { TaskStatistics } from '../components/TaskStatistics';
 import { TaskActions } from '../components/TaskActions';
 import { Dialog } from '../components/Dialog';
@@ -32,6 +33,10 @@ export function App() {
     type: 'success' | 'error';
     text: string;
   } | null>(null);
+  const [sortBy, setSortBy] = useState<
+    'createdAt' | 'dueDate' | 'priority' | 'title'
+  >('createdAt');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
   const stats = useMemo(() => {
     const total = tasks.length;
@@ -232,8 +237,16 @@ export function App() {
 
         {/* Filter and Task List Section */}
         <div className="flex flex-col lg:flex-row gap-6 mb-6">
-          {/* Filter */}
-          <div className="lg:w-80 lg:shrink-0">
+          {/* Filter and Sorting Sidebar */}
+          <div className="lg:w-80 lg:shrink-0 space-y-6">
+            <TaskSorting
+              sortBy={sortBy}
+              sortOrder={sortOrder}
+              onSortByChange={(newSortBy) => setSortBy(newSortBy)}
+              onSortOrderToggle={() =>
+                setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')
+              }
+            />
             <TaskFilter
               onFiltersChange={setFilters}
               tasks={tasks}
@@ -245,6 +258,8 @@ export function App() {
           <div className="flex-1">
             <TaskList
               tasks={filteredTasks}
+              sortBy={sortBy}
+              sortOrder={sortOrder}
               onUpdateTask={updateTask}
               onDeleteTask={deleteTask}
               onDuplicateTask={duplicateTask}

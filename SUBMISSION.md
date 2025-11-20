@@ -3,7 +3,7 @@
 ## Candidate Information
 
 - **Name:** Hitesh Khatri
-- **Date:** [Submission Date]
+- **Date:** 20/11/2025
 
 ---
 
@@ -299,7 +299,7 @@ Used vitest with @testing-library/react for rendering and interactions. Combined
 
 **Location:** `src/components/TaskList.spec.tsx`
 
-**Coverage:** 24 comprehensive tests covering:
+**Coverage:** 17 comprehensive tests covering:
 
 **Filtering Tests:**
 
@@ -317,31 +317,27 @@ Used vitest with @testing-library/react for rendering and interactions. Combined
 - "No tasks with status" message when filter has no results
 - Contextual suggestions for each empty state
 
-**Sorting Controls:**
-
-- All sorting buttons rendered (Created Date, Due Date, Priority, Title)
-- Sort order toggle button rendered (Asc/Desc)
-- Active sort button highlighted with blue background
-- Sort selection changes when buttons clicked
-- Sort order toggles between ascending and descending
-
 **Sorting Functionality:**
 
-- Default sort by created date in descending order
-- Sort by title alphabetically (A-Z in asc, Z-A in desc)
-- Sort by priority (high→medium→low in desc order)
-- Sort by due date with no-due-date tasks last (Infinity handling)
-- Sort order inversion works correctly (asc vs desc)
+- Default sort by created date in descending order (via props)
+- Sort by title alphabetically when sortBy="title" prop passed
+- Sort by priority when sortBy="priority" prop passed
+- Sort by due date when sortBy="dueDate" prop passed
+- Ascending vs descending order controlled by sortOrder prop
+- Tasks without due dates sorted last (Infinity handling)
 
 **Component Integration:**
 
 - TaskCard components rendered for each task
-- Callbacks (onUpdateTask, onDeleteTask, onEditTask) passed to TaskCard
+- Callbacks (onUpdateTask, onDeleteTask, onDuplicateTask) passed to TaskCard
 - Pagination integration with correct totalItems count
 - Grid layout with responsive columns (1/2/3 columns)
 
 **Testing Approach:**
-Used vitest with @testing-library/react for component rendering and DOM queries. Simulated user interactions with userEvent for button clicks. Verified sorting behavior by extracting task titles in rendered order and comparing with expected sequences. Tested edge cases like tasks without due dates (sorted as Infinity). Used container queries to verify CSS grid classes for responsive layout. Verified pagination integration through callback pattern.
+Used vitest with @testing-library/react for component rendering and DOM queries. TaskList now receives sortBy and sortOrder as props from parent (App component), making it a presentation component focused on display logic. Tests verify sorting works correctly by passing different prop combinations and checking rendered task order. Verified filtering, empty states, and component integration through prop callbacks. All sorting UI interaction tests removed as sorting controls moved to TaskSorting component.
+
+**Note on Refactoring:**
+After extracting sorting controls to TaskSorting component, TaskList tests were updated to reflect new component interface. Tests now verify TaskList correctly displays tasks in order specified by sortBy/sortOrder props rather than testing internal sorting state management. This improves test clarity and aligns with component's new role as a presentation component.
 
 ---
 
@@ -512,31 +508,31 @@ Used vitest with URL API mocking (createObjectURL, revokeObjectURL) for export t
 
 ### Test Summary
 
-**Total Tests Written:** 252 tests
+**Total Tests Written:** 245 tests
 
-**Passing Tests:** 252 tests (100% pass rate) ✅
+**Passing Tests:** 245 tests (100% pass rate) ✅
 
 **Test Breakdown:**
 
-- TaskCard: 15 tests ✓
+- TaskCard: 19 tests ✓
 - TaskFilter: 30 tests ✓
 - TaskForm: 42 tests ✓
-- TaskList: 24 tests ✓
+- TaskList: 17 tests ✓ (updated after TaskSorting refactoring)
 - Pagination: 18 tests ✓
 - useTasks: 25 tests ✓
 - taskHelpers: 32 tests ✓
-- exportHelpers: 15 tests ✓ (NEW)
-- importHelpers: 30 tests ✓ (NEW)
+- exportHelpers: 15 tests ✓
+- importHelpers: 30 tests ✓
 - App: 17 tests ✓ (including 1 comprehensive integration test)
 
 **Test Duration:** ~9 seconds
 
 **Code Coverage (Passing Tests):**
 
-- Statements: 95.43% (1862/1951)
-- Branches: 92.95% (607/653)
-- Functions: 90.38% (94/104)
-- Lines: 95.43% (1862/1951)
+- Statements: 95.41% (1872/1962)
+- Branches: 90.88% (588/647)
+- Functions: 85.84% (91/106)
+- Lines: 95.41% (1872/1962)
 
 **Coverage Areas:**
 
@@ -613,6 +609,34 @@ Implemented colored left borders (4px accent stripe) on TaskCards based on prior
 
 **Improvements:**
 Implemented comprehensive data portability allowing users to export tasks to JSON or CSV formats and import tasks from files. Created downloadTasksAsJSON function that exports tasks with 2-space indentation and date-stamped filenames (e.g., tasks-export-2025-01-15.json). Built downloadTasksAsCSV with proper CSV escaping for commas, quotes, and newlines, handling tags as semicolon-separated values. Developed importTasksFromFile validator with TypeScript type guards ensuring only valid Task objects are imported, with detailed error messages for invalid data. Added importTasks method to useTasks hook that merges imported tasks with existing ones, preventing duplicates by ID. Created export dropdown menu (JSON/CSV options) and import button with hidden file input accepting .json and .csv files. Export uses Blob API with automatic download triggers, while import provides user feedback via alerts for success/failure. Feature enables task backup, data migration between devices, and integration with external tools through standard formats.
+
+### Task Sorting Component Refactoring
+
+**Location:** `src/components/TaskSorting.tsx`, `src/components/TaskList.tsx`, `src/app/app.tsx`
+
+**Improvements:**
+Extracted sorting controls into a dedicated, reusable TaskSorting component for better code organization and separation of concerns. The component provides a clean interface with four sort options (Created Date, Due Date, Priority, Title) and an ascending/descending toggle button. Moved sorting state management from TaskList to the App component, making TaskList a more focused presentation component that receives sort parameters as props. Repositioned TaskSorting component in the left sidebar below TaskFilter, creating a logical grouping of all filtering and sorting controls in one location. This improves user experience by keeping related controls together and enhances code maintainability through better component composition. The sorting buttons feature active state highlighting (blue background) and smooth hover transitions, with responsive layout that wraps on smaller screens. Sort changes are wrapped in React's useTransition for non-blocking UI updates, maintaining smooth interactions even with large task lists.
+
+**Benefits:**
+
+- Better code organization with dedicated sorting component
+- Improved user experience with all controls grouped in sidebar
+- Enhanced maintainability through component reusability
+- Cleaner TaskList component focused on display logic
+- Consistent styling and interaction patterns
+- Non-blocking sort operations with useTransition
+
+**Test Updates:**
+
+After extracting sorting controls, TaskList.spec.tsx was updated to reflect the new component interface:
+
+- **Tests Updated:** 17 tests (from 24 originally)
+- **Tests Removed:** 7 sorting button interaction tests (UI moved to TaskSorting)
+- **Tests Modified:** All remaining tests updated to pass required sortBy/sortOrder props
+- **New Test Focus:** Tests now verify TaskList correctly displays tasks in order specified by props
+- **Result:** All 245 tests passing with 95.41% code coverage
+
+The test updates ensure TaskList is tested as a presentation component that receives sort configuration rather than managing it internally. Sorting button interaction tests should be added to TaskSorting.spec.tsx for complete coverage of the sorting feature.
 
 ## Features Implemented
 
@@ -900,7 +924,6 @@ Created a small, animated warning icon component to indicate overdue high-priori
 
 **Visual Improvements:**
 
-- Removed pulsating animation from entire TaskCard (better performance)
 - Added small red warning triangle icon with pulsating effect
 - Icon only appears for high-priority overdue tasks
 - Pulsates twice to draw attention, then remains static
@@ -1174,7 +1197,7 @@ Created a small, animated warning icon component to indicate overdue high-priori
 
 **Test Results:**
 
-- **Total:** 252 tests passing
+- **Total:** 245 tests passing
 - **Test Files:** 10 test suites
 - **Duration:** ~9 seconds
 - **Success Rate:** 100%
@@ -1187,7 +1210,7 @@ Created a small, animated warning icon component to indicate overdue high-priori
 - TaskCard.spec.tsx: 19 tests
 - TaskFilter.spec.tsx: 30 tests
 - TaskForm.spec.tsx: 42 tests
-- TaskList.spec.tsx: 24 tests
+- TaskList.spec.tsx: 17 tests (updated after TaskSorting refactoring)
 - Pagination.spec.tsx: 18 tests
 - useTasks.spec.ts: 25 tests
 - taskHelpers.spec.ts: 32 tests

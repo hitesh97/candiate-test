@@ -5,6 +5,8 @@ import { useState, useTransition, useCallback } from 'react';
 
 interface TaskListProps {
   tasks: Task[];
+  sortBy: 'createdAt' | 'dueDate' | 'priority' | 'title';
+  sortOrder: 'asc' | 'desc';
   onUpdateTask: (id: string, updates: Partial<Task>) => void;
   onDeleteTask: (id: string) => void;
   onDuplicateTask: (id: string) => void;
@@ -13,15 +15,13 @@ interface TaskListProps {
 
 export const TaskList = ({
   tasks,
+  sortBy,
+  sortOrder,
   onUpdateTask,
   onDeleteTask,
   onDuplicateTask,
   onEditTask,
 }: TaskListProps) => {
-  const [sortBy, setSortBy] = useState<
-    'createdAt' | 'dueDate' | 'priority' | 'title'
-  >('createdAt');
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [paginationRange, setPaginationRange] = useState({ start: 0, end: 5 });
   const [, startTransition] = useTransition();
 
@@ -88,64 +88,7 @@ export const TaskList = ({
 
   return (
     <div>
-      {/* Sorting controls */}
-      <div className="bg-white p-4 rounded-lg shadow-md mb-4">
-        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
-          <label className="text-sm font-medium text-gray-700">Sort by:</label>
-          <div className="flex flex-wrap gap-2">
-            <button
-              onClick={() => startTransition(() => setSortBy('createdAt'))}
-              className={`px-3 py-1 text-sm rounded ${
-                sortBy === 'createdAt'
-                  ? 'bg-blue-500 text-white'
-                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-              }`}
-            >
-              Created Date
-            </button>
-            <button
-              onClick={() => startTransition(() => setSortBy('dueDate'))}
-              className={`px-3 py-1 text-sm rounded ${
-                sortBy === 'dueDate'
-                  ? 'bg-blue-500 text-white'
-                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-              }`}
-            >
-              Due Date
-            </button>
-            <button
-              onClick={() => startTransition(() => setSortBy('priority'))}
-              className={`px-3 py-1 text-sm rounded ${
-                sortBy === 'priority'
-                  ? 'bg-blue-500 text-white'
-                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-              }`}
-            >
-              Priority
-            </button>
-            <button
-              onClick={() => startTransition(() => setSortBy('title'))}
-              className={`px-3 py-1 text-sm rounded ${
-                sortBy === 'title'
-                  ? 'bg-blue-500 text-white'
-                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-              }`}
-            >
-              Title
-            </button>
-            <button
-              onClick={() =>
-                startTransition(() =>
-                  setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')
-                )
-              }
-              className="px-3 py-1 text-sm rounded bg-gray-200 text-gray-700 hover:bg-gray-300"
-            >
-              {sortOrder === 'asc' ? '↑ Asc' : '↓ Desc'}
-            </button>
-          </div>
-        </div>
-      </div>
+      <Pagination totalItems={sortedTasks.length} onPaginate={handlePaginate} />
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 transition-opacity duration-150">
         {paginatedTasks.map((task) => (
@@ -159,8 +102,6 @@ export const TaskList = ({
           />
         ))}
       </div>
-
-      <Pagination totalItems={sortedTasks.length} onPaginate={handlePaginate} />
     </div>
   );
 };

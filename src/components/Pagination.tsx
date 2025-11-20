@@ -45,7 +45,7 @@ export const Pagination = ({
   }
 
   return (
-    <div className="mt-6 flex flex-wrap items-center justify-center sm:justify-between gap-4 bg-white p-4 rounded-lg shadow-md">
+    <div className="flex flex-wrap items-center justify-center sm:justify-between gap-4 bg-white p-4 rounded-lg shadow-md mb-4">
       {/* Items per page selector */}
       <div className="flex items-center gap-2">
         <label className="text-sm text-gray-700">Show:</label>

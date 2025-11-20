@@ -49,8 +49,11 @@ describe('TaskList', () => {
     render(
       <TaskList
         tasks={mockTasks}
+        sortBy="createdAt"
+        sortOrder="desc"
         onUpdateTask={mockOnUpdateTask}
         onDeleteTask={mockOnDeleteTask}
+        onDuplicateTask={vi.fn()}
       />
     );
 
@@ -64,8 +67,11 @@ describe('TaskList', () => {
     render(
       <TaskList
         tasks={todoTasks}
+        sortBy="createdAt"
+        sortOrder="desc"
         onUpdateTask={mockOnUpdateTask}
         onDeleteTask={mockOnDeleteTask}
+        onDuplicateTask={vi.fn()}
       />
     );
 
@@ -79,8 +85,11 @@ describe('TaskList', () => {
     render(
       <TaskList
         tasks={inProgressTasks}
+        sortBy="createdAt"
+        sortOrder="desc"
         onUpdateTask={mockOnUpdateTask}
         onDeleteTask={mockOnDeleteTask}
+        onDuplicateTask={vi.fn()}
       />
     );
 
@@ -94,8 +103,11 @@ describe('TaskList', () => {
     render(
       <TaskList
         tasks={doneTasks}
+        sortBy="createdAt"
+        sortOrder="desc"
         onUpdateTask={mockOnUpdateTask}
         onDeleteTask={mockOnDeleteTask}
+        onDuplicateTask={vi.fn()}
       />
     );
 
@@ -111,8 +123,11 @@ describe('TaskList', () => {
     render(
       <TaskList
         tasks={searchedTasks}
+        sortBy="createdAt"
+        sortOrder="desc"
         onUpdateTask={mockOnUpdateTask}
         onDeleteTask={mockOnDeleteTask}
+        onDuplicateTask={vi.fn()}
       />
     );
 
@@ -128,8 +143,11 @@ describe('TaskList', () => {
     render(
       <TaskList
         tasks={searchedTasks}
+        sortBy="createdAt"
+        sortOrder="desc"
         onUpdateTask={mockOnUpdateTask}
         onDeleteTask={mockOnDeleteTask}
+        onDuplicateTask={vi.fn()}
       />
     );
 
@@ -142,8 +160,11 @@ describe('TaskList', () => {
     render(
       <TaskList
         tasks={[]}
+        sortBy="createdAt"
+        sortOrder="desc"
         onUpdateTask={mockOnUpdateTask}
         onDeleteTask={mockOnDeleteTask}
+        onDuplicateTask={vi.fn()}
       />
     );
 
@@ -157,8 +178,11 @@ describe('TaskList', () => {
     render(
       <TaskList
         tasks={[]}
+        sortBy="createdAt"
+        sortOrder="desc"
         onUpdateTask={mockOnUpdateTask}
         onDeleteTask={mockOnDeleteTask}
+        onDuplicateTask={vi.fn()}
       />
     );
 
@@ -174,8 +198,11 @@ describe('TaskList', () => {
     render(
       <TaskList
         tasks={[]}
+        sortBy="createdAt"
+        sortOrder="desc"
         onUpdateTask={mockOnUpdateTask}
         onDeleteTask={mockOnDeleteTask}
+        onDuplicateTask={vi.fn()}
       />
     );
 
@@ -186,125 +213,15 @@ describe('TaskList', () => {
     ).toBeDefined();
   });
 
-  it('should render sorting controls', () => {
-    render(
-      <TaskList
-        tasks={mockTasks}
-        onUpdateTask={mockOnUpdateTask}
-        onDeleteTask={mockOnDeleteTask}
-      />
-    );
-
-    expect(screen.getByText('Sort by:')).toBeDefined();
-    expect(screen.getByRole('button', { name: /created date/i })).toBeDefined();
-    expect(screen.getByRole('button', { name: /due date/i })).toBeDefined();
-    expect(screen.getByRole('button', { name: /priority/i })).toBeDefined();
-    expect(screen.getByRole('button', { name: /title/i })).toBeDefined();
-    expect(screen.getByRole('button', { name: /desc/i })).toBeDefined();
-  });
-
-  it('should highlight active sort button with blue background', () => {
-    render(
-      <TaskList
-        tasks={mockTasks}
-        onUpdateTask={mockOnUpdateTask}
-        onDeleteTask={mockOnDeleteTask}
-      />
-    );
-
-    const createdDateButton = screen.getByRole('button', {
-      name: /created date/i,
-    });
-    expect(createdDateButton.className).toContain('bg-blue-500');
-  });
-
-  it('should change sort to "dueDate" when Due Date button clicked', async () => {
-    const user = userEvent.setup();
-    render(
-      <TaskList
-        tasks={mockTasks}
-        onUpdateTask={mockOnUpdateTask}
-        onDeleteTask={mockOnDeleteTask}
-      />
-    );
-
-    const dueDateButton = screen.getByRole('button', { name: /due date/i });
-    await user.click(dueDateButton);
-
-    expect(dueDateButton.className).toContain('bg-blue-500');
-  });
-
-  it('should change sort to "priority" when Priority button clicked', async () => {
-    const user = userEvent.setup();
-    render(
-      <TaskList
-        tasks={mockTasks}
-        onUpdateTask={mockOnUpdateTask}
-        onDeleteTask={mockOnDeleteTask}
-      />
-    );
-
-    const priorityButton = screen.getByRole('button', { name: /priority/i });
-    await user.click(priorityButton);
-
-    expect(priorityButton.className).toContain('bg-blue-500');
-  });
-
-  it('should change sort to "title" when Title button clicked', async () => {
-    const user = userEvent.setup();
-    render(
-      <TaskList
-        tasks={mockTasks}
-        onUpdateTask={mockOnUpdateTask}
-        onDeleteTask={mockOnDeleteTask}
-      />
-    );
-
-    const titleButton = screen.getByRole('button', { name: /title/i });
-    await user.click(titleButton);
-
-    expect(titleButton.className).toContain('bg-blue-500');
-  });
-
-  it('should toggle sort order from desc to asc when order button clicked', async () => {
-    const user = userEvent.setup();
-    render(
-      <TaskList
-        tasks={mockTasks}
-        onUpdateTask={mockOnUpdateTask}
-        onDeleteTask={mockOnDeleteTask}
-      />
-    );
-
-    const orderButton = screen.getByRole('button', { name: /↓ desc/i });
-    await user.click(orderButton);
-
-    expect(screen.getByRole('button', { name: /↑ asc/i })).toBeDefined();
-  });
-
-  it('should toggle sort order from asc back to desc', async () => {
-    const user = userEvent.setup();
-    render(
-      <TaskList
-        tasks={mockTasks}
-        onUpdateTask={mockOnUpdateTask}
-        onDeleteTask={mockOnDeleteTask}
-      />
-    );
-
-    const orderButton = screen.getByRole('button', { name: /↓ desc/i });
-    await user.click(orderButton); // Now Asc
-    await user.click(orderButton); // Back to Desc
-
-    expect(screen.getByRole('button', { name: /↓ desc/i })).toBeDefined();
-  });
-
   it('should sort tasks by created date in descending order by default', () => {
     render(
       <TaskList
         tasks={mockTasks}
+        sortBy="createdAt"
+        sortOrder="desc"
         onUpdateTask={mockOnUpdateTask}
         onDeleteTask={mockOnDeleteTask}
+        onDuplicateTask={vi.fn()}
       />
     );
 
@@ -319,21 +236,17 @@ describe('TaskList', () => {
     expect(taskTitles[2]).toContain('First Task');
   });
 
-  it('should sort tasks by title alphabetically when title sort selected', async () => {
-    const user = userEvent.setup();
+  it('should sort tasks by title alphabetically when sortBy="title" prop passed', () => {
     render(
       <TaskList
         tasks={mockTasks}
+        sortBy="title"
+        sortOrder="asc"
         onUpdateTask={mockOnUpdateTask}
         onDeleteTask={mockOnDeleteTask}
+        onDuplicateTask={vi.fn()}
       />
     );
-
-    const titleButton = screen.getByRole('button', { name: /title/i });
-    const orderButton = screen.getByRole('button', { name: /↓ desc/i });
-
-    await user.click(titleButton);
-    await user.click(orderButton); // Change to asc for alphabetical
 
     const taskTitles = screen
       .getAllByText(/Task/)
@@ -345,18 +258,17 @@ describe('TaskList', () => {
     expect(taskTitles[2]).toContain('Third Task');
   });
 
-  it('should sort tasks by priority (high to low) when priority sort selected', async () => {
-    const user = userEvent.setup();
+  it('should sort tasks by priority when sortBy="priority" prop passed', () => {
     render(
       <TaskList
         tasks={mockTasks}
+        sortBy="priority"
+        sortOrder="desc"
         onUpdateTask={mockOnUpdateTask}
         onDeleteTask={mockOnDeleteTask}
+        onDuplicateTask={vi.fn()}
       />
     );
-
-    const priorityButton = screen.getByRole('button', { name: /priority/i });
-    await user.click(priorityButton);
 
     const taskTitles = screen
       .getAllByText(/Task/)
@@ -369,21 +281,17 @@ describe('TaskList', () => {
     expect(taskTitles[2]).toContain('Third Task'); // low
   });
 
-  it('should sort tasks by due date with tasks without due dates last', async () => {
-    const user = userEvent.setup();
+  it('should sort tasks by due date when sortBy="dueDate" prop passed', () => {
     render(
       <TaskList
         tasks={mockTasks}
+        sortBy="dueDate"
+        sortOrder="asc"
         onUpdateTask={mockOnUpdateTask}
         onDeleteTask={mockOnDeleteTask}
+        onDuplicateTask={vi.fn()}
       />
     );
-
-    const dueDateButton = screen.getByRole('button', { name: /due date/i });
-    const orderButton = screen.getByRole('button', { name: /↓ desc/i });
-
-    await user.click(dueDateButton);
-    await user.click(orderButton); // Change to asc
 
     const taskTitles = screen
       .getAllByText(/Task/)
@@ -400,8 +308,11 @@ describe('TaskList', () => {
     render(
       <TaskList
         tasks={mockTasks}
+        sortBy="createdAt"
+        sortOrder="desc"
         onUpdateTask={mockOnUpdateTask}
         onDeleteTask={mockOnDeleteTask}
+        onDuplicateTask={vi.fn()}
       />
     );
 
@@ -419,8 +330,11 @@ describe('TaskList', () => {
     render(
       <TaskList
         tasks={filteredTasks}
+        sortBy="createdAt"
+        sortOrder="desc"
         onUpdateTask={mockOnUpdateTask}
         onDeleteTask={mockOnDeleteTask}
+        onDuplicateTask={vi.fn()}
       />
     );
 
@@ -435,8 +349,11 @@ describe('TaskList', () => {
     render(
       <TaskList
         tasks={[]}
+        sortBy="createdAt"
+        sortOrder="desc"
         onUpdateTask={mockOnUpdateTask}
         onDeleteTask={mockOnDeleteTask}
+        onDuplicateTask={vi.fn()}
       />
     );
 
