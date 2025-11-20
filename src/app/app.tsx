@@ -1,8 +1,10 @@
-import { useState, useMemo, useRef } from 'react';
+import { useState, useMemo } from 'react';
 import { useTasks } from '../hooks/useTasks';
 import { TaskForm } from '../components/TaskForm';
 import { TaskList } from '../components/TaskList';
 import { TaskFilter } from '../components/TaskFilter';
+import { TaskStatistics } from '../components/TaskStatistics';
+import { TaskActions } from '../components/TaskActions';
 import { Dialog } from '../components/Dialog';
 import { Task } from '../types/task';
 import { TaskFilters, DEFAULT_FILTERS } from '../types/filter';
@@ -23,7 +25,6 @@ export function App() {
     type: 'success' | 'error';
     text: string;
   } | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const stats = useMemo(() => {
     const total = tasks.length;
@@ -139,7 +140,7 @@ export function App() {
   };
 
   const handleImportClick = () => {
-    fileInputRef.current?.click();
+    // File input click is now handled by TaskActions component
   };
 
   const handleFileImport = async (
@@ -164,11 +165,6 @@ export function App() {
           error instanceof Error ? error.message : 'Unknown error'
         }`,
       });
-    } finally {
-      // Reset file input
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
-      }
     }
   };
 
@@ -193,118 +189,26 @@ export function App() {
         )}
 
         {/* Statistics Dashboard */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          <div className="bg-white p-5 rounded-lg shadow-md">
-            <h3 className="text-gray-500 text-xs font-semibold uppercase tracking-wider mb-2">
-              Total Tasks
-            </h3>
-            <p className="text-3xl font-bold text-gray-800">{stats.total}</p>
-          </div>
-          <div className="bg-white p-5 rounded-lg shadow-md">
-            <h3 className="text-gray-500 text-xs font-semibold uppercase tracking-wider mb-2">
-              To Do
-            </h3>
-            <p className="text-3xl font-bold text-yellow-600">{stats.todo}</p>
-          </div>
-          <div className="bg-white p-5 rounded-lg shadow-md">
-            <h3 className="text-gray-500 text-xs font-semibold uppercase tracking-wider mb-2">
-              In Progress
-            </h3>
-            <p className="text-3xl font-bold text-blue-600">
-              {stats.inProgress}
-            </p>
-          </div>
-          <div className="bg-white p-5 rounded-lg shadow-md">
-            <h3 className="text-gray-500 text-xs font-semibold uppercase tracking-wider mb-2">
-              Completed
-            </h3>
-            <p className="text-3xl font-bold text-green-600">
-              {stats.done}{' '}
-              <span className="text-xl font-semibold text-gray-500">
-                ({stats.completionRate.toFixed(0)}%)
-              </span>
-            </p>
-          </div>
-        </div>
+        <TaskStatistics
+          total={stats.total}
+          todo={stats.todo}
+          inProgress={stats.inProgress}
+          done={stats.done}
+        />
 
-        {/* Add Task Button */}
-        <div className="mb-6">
-          {/* Import/Export Message Banner */}
-          {importMessage && (
-            <div
-              className={`mb-4 p-4 rounded-lg border flex items-start justify-between ${
-                importMessage.type === 'success'
-                  ? 'bg-green-50 border-green-400 text-green-800'
-                  : 'bg-red-50 border-red-400 text-red-800'
-              }`}
-            >
-              <div className="flex items-start gap-3">
-                <span className="text-lg">
-                  {importMessage.type === 'success' ? '✓' : '✕'}
-                </span>
-                <p className="font-medium">{importMessage.text}</p>
-              </div>
-              <button
-                onClick={() => setImportMessage(null)}
-                className="text-gray-500 hover:text-gray-700 font-bold text-xl leading-none"
-                aria-label="Close message"
-              >
-                ×
-              </button>
-            </div>
-          )}
-
-          <div className="flex justify-end gap-3">
-            {/* Export Menu */}
-            <div className="relative">
-              <button
-                onClick={() => setShowExportMenu(!showExportMenu)}
-                className="bg-green-500 text-white px-6 py-3 rounded-lg hover:bg-green-600 transition-colors shadow-md font-semibold text-base"
-              >
-                Export Tasks ▾
-              </button>
-              {showExportMenu && (
-                <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl z-10 border border-gray-200">
-                  <button
-                    onClick={handleExportJSON}
-                    className="block w-full text-left px-4 py-3 hover:bg-gray-100 transition-colors font-medium text-gray-700 border-b border-gray-200"
-                  >
-                    Export as JSON
-                  </button>
-                  <button
-                    onClick={handleExportCSV}
-                    className="block w-full text-left px-4 py-3 hover:bg-gray-100 transition-colors font-medium text-gray-700"
-                  >
-                    Export as CSV
-                  </button>
-                </div>
-              )}
-            </div>
-
-            {/* Import Button */}
-            <button
-              onClick={handleImportClick}
-              className="bg-purple-500 text-white px-6 py-3 rounded-lg hover:bg-purple-600 transition-colors shadow-md font-semibold text-base"
-            >
-              Import Tasks
-            </button>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept=".json,.csv"
-              onChange={handleFileImport}
-              className="hidden"
-            />
-
-            {/* Add Task Button */}
-            <button
-              onClick={() => setShowForm(!showForm)}
-              className="bg-blue-500 text-white px-8 py-3.5 rounded-lg hover:bg-blue-600 transition-colors shadow-md font-semibold text-base"
-            >
-              {showForm ? 'Cancel' : '+ Add New Task'}
-            </button>
-          </div>
-        </div>
+        {/* Task Actions */}
+        <TaskActions
+          showForm={showForm}
+          showExportMenu={showExportMenu}
+          importMessage={importMessage}
+          onToggleForm={() => setShowForm(!showForm)}
+          onToggleExportMenu={() => setShowExportMenu(!showExportMenu)}
+          onExportJSON={handleExportJSON}
+          onExportCSV={handleExportCSV}
+          onImportClick={handleImportClick}
+          onFileImport={handleFileImport}
+          onCloseImportMessage={() => setImportMessage(null)}
+        />
 
         {/* Task Form */}
         {showForm && (

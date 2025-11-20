@@ -651,7 +651,7 @@ Completely redesigned the filter system from single-select radio buttons to a co
 
 ---
 
-## Code refactoring and performance Improvements
+### Code refactoring and performance Improvements
 
 ### Improvement #1: React 19 Form Actions Implementation in TaskForm
 
@@ -792,6 +792,53 @@ The application lacked automatic memoization, causing unnecessary re-renders and
 
 **Solution:**
 Enabled React 19's Compiler via babel-plugin-react-compiler in Vite config for automatic component and callback memoization. Moved PRIORITY_COLORS, STATUS_COLORS, STATUS_CYCLE, and formatDate function outside component to module level, creating single Intl.DateTimeFormat instance for reuse. Achieved 60-70% reduction in TaskCard re-renders, zero object allocations for static data, and 50% faster date formatting. Compiler automatically memoizes all components, callbacks, and expensive computations without manual React.memo, useMemo, or useCallback. Combined with other optimizations: 80-85% total improvement with Form Actions, smoother UX with useTransition, and no lag during search with useDeferredValue.
+
+---
+
+### Improvement #5: Component Refactoring for Reusability
+
+**Location:** `src/components/TaskStatistics.tsx`, `src/components/TaskActions.tsx`, `src/components/icons/AlertPinIcon.tsx`
+
+**Improvements:**
+
+**TaskStatistics Component:**
+Extracted statistics dashboard into a separate, reusable component that accepts task counts (total, todo, inProgress, done) as props and calculates completion rate internally. Reduces code duplication and separates presentation logic from business logic, making statistics easy to reuse across different views.
+
+**TaskActions Component:**
+Refactored task action buttons (Export, Import, Add Task) with import/export message banner into a standalone component. Manages its own file input ref internally while accepting all event handlers as props. Provides a clean, reusable interface for task management actions with clear separation of concerns.
+
+**AlertPinIcon Component:**
+Created a small, animated warning icon component to indicate overdue high-priority tasks. Implements pulsating animation that runs exactly twice (via CSS `animation-iteration-count: 2`) and then stops. Icon appears next to task title instead of animating the entire card, providing subtle visual feedback. Supports tooltip via SVG `<title>` element for accessibility, with tooltip text passed from parent component.
+
+**Visual Improvements:**
+
+- Removed pulsating animation from entire TaskCard (better performance)
+- Added small red warning triangle icon with pulsating effect
+- Icon only appears for high-priority overdue tasks
+- Pulsates twice to draw attention, then remains static
+- Tooltip displays "Overdue" on hover for context
+- Icon positioned next to task title with proper spacing
+- Uses `animate-pulse-twice` CSS class from custom animation
+
+**Technical Implementation:**
+
+- Created reusable AlertPinIcon with SVG path for triangle shape
+- Custom CSS animation in `styles.css`: `@keyframes pulse-twice` with 2s duration
+- Animation runs 2 iterations using `animation: pulse-twice 2s cubic-bezier(0.4, 0, 0.6, 1) 2`
+- Icon fades from opacity 1 to 0.5 and back twice, then stops
+- Tooltip implemented using SVG `<title>` element (proper accessibility)
+- Title prop passed from TaskCard to AlertPinIcon for flexible tooltip text
+
+**Benefits:**
+
+- Improved modularity and code organization
+- Better separation of concerns
+- Enhanced reusability across application
+- Clearer component responsibilities
+- Easier testing and maintenance
+- More focused visual feedback for overdue tasks
+- Better performance (animating small icon vs entire card)
+- Accessible tooltips following web standards
 
 ---
 

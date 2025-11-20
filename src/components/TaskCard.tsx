@@ -3,6 +3,7 @@ import React from 'react';
 import { TagPill } from './TagPill';
 import { CalendarIcon } from './icons/CalendarIcon';
 import { ClockIcon } from './icons/ClockIcon';
+import { AlertPinIcon } from './icons/AlertPinIcon';
 
 interface TaskCardProps {
   task: Task;
@@ -81,14 +82,22 @@ export const TaskCard = ({
 
   return (
     <div
-      className={`bg-white p-5 rounded-lg shadow-md border-l-4 border-t border-r border-b border-gray-200 hover:shadow-lg transition-all ${
+      className={`bg-white p-5 rounded-lg shadow-md border-l-4 border-t border-r border-b border-gray-200 hover:shadow-lg transition-all flex flex-col ${
         PRIORITY_BORDER_COLORS[task.priority]
-      } ${isHighPriorityOverdue ? 'animate-pulse ring-2 ring-red-300' : ''}`}
+      }`}
     >
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-3 gap-2">
-        <h3 className="text-lg sm:text-xl font-bold text-gray-900 wrap-break-word tracking-tight">
-          {task.title}
-        </h3>
+        <div className="flex items-center gap-2">
+          {isHighPriorityOverdue && (
+            <AlertPinIcon
+              className="text-red-600 animate-pulse-twice shrink-0"
+              title="Overdue"
+            />
+          )}
+          <h3 className="text-lg sm:text-xl font-bold text-gray-900 wrap-break-word tracking-tight">
+            {task.title}
+          </h3>
+        </div>
         <div className="flex gap-2 flex-wrap">
           <span
             className={`px-2.5 py-1 text-xs font-semibold rounded-full ${
@@ -152,7 +161,7 @@ export const TaskCard = ({
         </div>
       )}
 
-      <div className="flex gap-2 flex-col sm:flex-row">
+      <div className="flex gap-2 flex-col sm:flex-row mt-auto">
         <button
           onClick={handleStatusToggle}
           className="flex-1 bg-blue-500 text-white py-2.5 px-4 rounded-md text-sm font-semibold hover:bg-blue-600 transition-colors shadow-sm"
