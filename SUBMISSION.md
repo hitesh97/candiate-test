@@ -434,7 +434,7 @@ Used vitest with @testing-library/react for component rendering and user interac
 - Add new task with auto-generated ID and createdAt timestamp
 - Add task to existing tasks array
 - Preserve existing tasks when adding new ones
-- Generate unique IDs using Date.now()
+- Generate unique IDs using crypto.randomUUID()
 
 **Update Task Functionality:**
 
@@ -469,7 +469,7 @@ Used vitest with @testing-library/react for component rendering and user interac
 - Duplicate task with all optional fields preserved
 
 **Testing Approach:**
-Used vitest with @testing-library/react's renderHook for testing custom hooks. Mocked localStorage operations by spying on taskHelpers functions (loadTasksFromStorage, saveTasksToStorage) to isolate hook logic from storage implementation. Used waitFor to handle async operations and state updates. Mocked Date.now() and Date.prototype.toISOString() to test ID and timestamp generation. Verified abort mechanism prevents state updates after unmount. Tested all CRUD operations, import functionality, task duplication with proper immutability for tags arrays, and their side effects on storage persistence.
+Used vitest with @testing-library/react's renderHook for testing custom hooks. Mocked localStorage operations by spying on taskHelpers functions (loadTasksFromStorage, saveTasksToStorage) to isolate hook logic from storage implementation. Used waitFor to handle async operations and state updates. Mocked crypto.randomUUID() to test ID and timestamp generation. Verified abort mechanism prevents state updates after unmount. Tested all CRUD operations, import functionality, task duplication with proper immutability for tags arrays, and their side effects on storage persistence.
 
 **Test Status:**
 ✅ All 25 tests passing. Complete coverage of CRUD operations, import functionality, duplicate functionality with proper array copying for immutability, and storage persistence.
@@ -698,7 +698,7 @@ Implemented one-click task duplication functionality allowing users to quickly c
 **Implementation:**
 
 - Created `duplicateTask(id: string)` function in useTasks hook
-- Generates unique ID using timestamp and random string: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+- Generates unique ID using timestamp and random string: `${crypto.randomUUID()}`
 - Sets fresh `createdAt` timestamp for the duplicated task
 - Preserves all other fields: title, description, status, priority, dueDate, tags
 - Threaded callback through App → TaskList → TaskCard components

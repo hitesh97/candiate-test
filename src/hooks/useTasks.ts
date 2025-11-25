@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { Task } from '../types/task';
 import { loadTasksFromStorage, saveTasksToStorage } from '../utils/taskHelpers';
 
@@ -28,63 +28,67 @@ export const useTasks = () => {
     };
   }, []);
 
-  const addTask = (newTask: Omit<Task, 'id' | 'createdAt'>) => {
-    const task: Task = {
-      ...newTask,
-      id: Date.now().toString(),
-      createdAt: new Date().toISOString(),
-    };
-    setTasks((prev) => [...prev, task]);
-  };
-
-  // Only allow updates to mutable fields; prevent accidental changes to 'id' and 'createdAt'.
-  const updateTask = (
-    id: string,
-    updates: Partial<Omit<Task, 'id' | 'createdAt'>>
-  ) => {
-    setTasks((prev) =>
-      prev.map((task) => (task.id === id ? { ...task, ...updates } : task))
-    );
-  };
-
-  const deleteTask = (id: string) => {
-    setTasks((prev) => prev.filter((task) => task.id !== id));
-  };
-
-  /**
-   * Duplicate a task by copying all fields except id and createdAt.
-   * The new task gets a fresh ID and creation timestamp.
-   */
-  const duplicateTask = (id: string) => {
-    setTasks((prev) => {
-      const taskToDuplicate = prev.find((task) => task.id === id);
-      if (!taskToDuplicate) return prev;
-
-      const duplicatedTask: Task = {
-        ...taskToDuplicate,
-        id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+  // All mutator functions are defined inside useMemo for referential stability
+  const value = useMemo(() => {
+    const addTask = (newTask: Omit<Task, 'id' | 'createdAt'>) => {
+      const task: Task = {
+        ...newTask,
+        id: crypto.randomUUID(),
         createdAt: new Date().toISOString(),
-        tags: [...taskToDuplicate.tags],
       };
+      setTasks((prev) => [...prev, task]);
+    };
 
-      return [...prev, duplicatedTask];
-    });
-  };
+    const updateTask = (
+      id: string,
+      updates: Partial<Omit<Task, 'id' | 'createdAt'>>
+    ) => {
+      setTasks((prev) =>
+        prev.map((task) => (task.id === id ? { ...task, ...updates } : task))
+      );
+    };
 
-  /**
-   * Import tasks in bulk, assigning new unique IDs to all imported tasks
-   * to prevent conflicts with existing tasks.
-   */
-  const importTasks = (importedTasks: Task[]) => {
-    setTasks((prev) => {
-      // Generate new IDs for all imported tasks
-      const tasksWithNewIds = importedTasks.map((task) => ({
-        ...task,
-        id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-      }));
-      return [...prev, ...tasksWithNewIds];
-    });
-  };
+    const deleteTask = (id: string) => {
+      setTasks((prev) => prev.filter((task) => task.id !== id));
+    };
+
+    const duplicateTask = (id: string) => {
+      setTasks((prev) => {
+        const taskToDuplicate = prev.find((task) => task.id === id);
+        if (!taskToDuplicate) return prev;
+
+        const duplicatedTask: Task = {
+          ...taskToDuplicate,
+          id: `${crypto.randomUUID()}`,
+          createdAt: new Date().toISOString(),
+          tags: [...taskToDuplicate.tags],
+        };
+
+        return [...prev, duplicatedTask];
+      });
+    };
+
+    const importTasks = (importedTasks: Task[]) => {
+      setTasks((prev) => {
+        // Generate new IDs for all imported tasks
+        const tasksWithNewIds = importedTasks.map((task) => ({
+          ...task,
+          id: `${crypto.randomUUID()}`,
+        }));
+        return [...prev, ...tasksWithNewIds];
+      });
+    };
+
+    return {
+      tasks,
+      loading,
+      addTask,
+      updateTask,
+      deleteTask,
+      duplicateTask,
+      importTasks,
+    };
+  }, [tasks, loading]);
 
   // Persist tasks whenever they change, but skip the initial load
   useEffect(() => {
@@ -101,13 +105,5 @@ export const useTasks = () => {
     };
   }, [tasks]);
 
-  return {
-    tasks,
-    loading,
-    addTask,
-    updateTask,
-    deleteTask,
-    duplicateTask,
-    importTasks,
-  };
+  return value;
 };

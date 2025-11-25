@@ -13,6 +13,7 @@
     "includedScripts": []
   },
   "dependencies": {
+    "crypto": "^1.0.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-router-dom": "6.29.0"
