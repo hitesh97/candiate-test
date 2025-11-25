@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react';
 import { useTasks } from '../hooks/useTasks';
 import { TaskForm } from '../components/TaskForm';
 import { TaskList } from '../components/TaskList';
+import { FilteredTasks } from '../components/FilteredTasks';
 import { TaskFilter } from '../components/TaskFilter';
 import { TaskSorting } from '../components/TaskSorting';
 import { TaskStatistics } from '../components/TaskStatistics';
@@ -33,6 +34,7 @@ export function App() {
     type: 'success' | 'error';
     text: string;
   } | null>(null);
+  // Sort state is now managed in TaskSorting
   const [sortBy, setSortBy] = useState<
     'createdAt' | 'dueDate' | 'priority' | 'title'
   >('createdAt');
@@ -53,82 +55,8 @@ export function App() {
     };
   }, [tasks]);
 
-  const filteredTasks = useMemo(() => {
-    // Pre-compute values outside the filter loop for performance
-    const hasStatusFilter = filters.statuses.length > 0;
-    const hasSearchFilter = filters.searchQuery.length > 0;
-    const lowerQuery = hasSearchFilter ? filters.searchQuery.toLowerCase() : '';
-    const hasPriorityFilter = filters.priorities.length > 0;
-    const hasTagsFilter = filters.tags.length > 0;
-    const hasDateFilter = filters.dateRange !== null;
-
-    // Pre-compute date filter values once
-    let dateFilterType: 'created' | 'due' | null = null;
-    let startDate: Date | null = null;
-    let endDate: Date | null = null;
-    let startTime = 0;
-    let endTime = 0;
-
-    if (hasDateFilter && filters.dateRange) {
-      dateFilterType = filters.dateRange.type;
-      if (filters.dateRange.start) {
-        startDate = new Date(filters.dateRange.start);
-        startTime = startDate.getTime();
-      }
-      if (filters.dateRange.end) {
-        endDate = new Date(filters.dateRange.end);
-        endTime = endDate.getTime();
-      }
-    }
-
-    // Single-pass filter combining all conditions
-    return tasks.filter((task) => {
-      // Status filter
-      if (hasStatusFilter && !filters.statuses.includes(task.status)) {
-        return false;
-      }
-
-      // Search filter
-      if (hasSearchFilter) {
-        const titleMatch = task.title.toLowerCase().includes(lowerQuery);
-        const descMatch = task.description.toLowerCase().includes(lowerQuery);
-        const tagMatch = task.tags?.some((tag) =>
-          tag.toLowerCase().includes(lowerQuery)
-        );
-        if (!titleMatch && !descMatch && !tagMatch) {
-          return false;
-        }
-      }
-
-      // Priority filter
-      if (hasPriorityFilter && !filters.priorities.includes(task.priority)) {
-        return false;
-      }
-
-      // Tags filter
-      if (
-        hasTagsFilter &&
-        !filters.tags.some((filterTag) => task.tags.includes(filterTag))
-      ) {
-        return false;
-      }
-
-      // Date range filter
-      if (hasDateFilter && dateFilterType) {
-        const dateStr =
-          dateFilterType === 'created' ? task.createdAt : task.dueDate;
-        if (!dateStr) return false;
-
-        const taskTime = new Date(dateStr).getTime();
-        if (startDate && taskTime < startTime) return false;
-        if (endDate && taskTime > endTime) return false;
-      }
-
-      return true;
-    });
-  }, [tasks, filters]);
-
-  const filteredTaskCount = filteredTasks.length;
+  // Filtering is now handled by FilteredTasks component
+  // filteredTaskCount will be derived in render
 
   const handleEditTask = (task: Task) => {
     setEditingTask(task);
@@ -240,31 +168,31 @@ export function App() {
           {/* Filter and Sorting Sidebar */}
           <div className="lg:w-80 lg:shrink-0 space-y-6">
             <TaskSorting
-              sortBy={sortBy}
-              sortOrder={sortOrder}
-              onSortByChange={(newSortBy) => setSortBy(newSortBy)}
-              onSortOrderToggle={() =>
-                setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')
-              }
+              initialSortBy={sortBy}
+              initialSortOrder={sortOrder}
+              onSortChange={(newSortBy, newSortOrder) => {
+                setSortBy(newSortBy);
+                setSortOrder(newSortOrder);
+              }}
             />
-            <TaskFilter
-              onFiltersChange={setFilters}
-              tasks={tasks}
-              taskCount={filteredTaskCount}
-            />
+            <TaskFilter onFiltersChange={setFilters} tasks={tasks} />
           </div>
 
           {/* Task List */}
           <div className="flex-1">
-            <TaskList
-              tasks={filteredTasks}
-              sortBy={sortBy}
-              sortOrder={sortOrder}
-              onUpdateTask={updateTask}
-              onDeleteTask={deleteTask}
-              onDuplicateTask={duplicateTask}
-              onEditTask={handleEditTask}
-            />
+            <FilteredTasks tasks={tasks} filters={filters}>
+              {(filteredTasks) => (
+                <TaskList
+                  tasks={filteredTasks}
+                  sortBy={sortBy}
+                  sortOrder={sortOrder}
+                  onUpdateTask={updateTask}
+                  onDeleteTask={deleteTask}
+                  onDuplicateTask={duplicateTask}
+                  onEditTask={handleEditTask}
+                />
+              )}
+            </FilteredTasks>
           </div>
         </div>
       </main>
