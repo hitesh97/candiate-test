@@ -1,32 +1,29 @@
-import React, { useRef } from 'react';
-
+import { useRef } from 'react';
 export interface TaskActionsProps {
-  showForm: boolean;
   showExportMenu: boolean;
   importMessage: {
     type: 'success' | 'error';
     text: string;
   } | null;
-  onToggleForm: () => void;
   onToggleExportMenu: () => void;
   onExportJSON: () => void;
   onExportCSV: () => void;
   onImportClick: () => void;
   onFileImport: (event: React.ChangeEvent<HTMLInputElement>) => void;
   onCloseImportMessage: () => void;
+  onAddTaskClick: () => void;
 }
 
 export function TaskActions({
-  showForm,
   showExportMenu,
   importMessage,
-  onToggleForm,
   onToggleExportMenu,
   onExportJSON,
   onExportCSV,
   onImportClick,
   onFileImport,
   onCloseImportMessage,
+  onAddTaskClick,
 }: TaskActionsProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -103,13 +100,12 @@ export function TaskActions({
           onChange={onFileImport}
           className="hidden"
         />
-
         {/* Add Task Button */}
         <button
-          onClick={onToggleForm}
+          onClick={onAddTaskClick}
           className="bg-blue-500 text-white px-8 py-3.5 rounded-lg hover:bg-blue-600 transition-colors shadow-md font-semibold text-base"
         >
-          {showForm ? 'Cancel' : '+ Add New Task'}
+          + Add New Task
         </button>
       </div>
     </div>

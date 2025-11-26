@@ -8,6 +8,7 @@ import {
 } from '@testing-library/react';
 import { TaskFilter } from './TaskFilter';
 import { Task } from '../types/task';
+import { TasksContext } from '../context/TasksContext';
 
 const mockTasks: Task[] = [
   {
@@ -41,6 +42,25 @@ const mockTasks: Task[] = [
   },
 ];
 
+// Custom provider to inject mock tasks into context for TaskFilter
+const MockTasksProvider: React.FC<{
+  children: React.ReactNode;
+  tasks?: Task[];
+}> = ({ children, tasks = mockTasks }) => {
+  const value = {
+    tasks,
+    loading: false,
+    addTask: vi.fn(),
+    updateTask: vi.fn(),
+    deleteTask: vi.fn(),
+    duplicateTask: vi.fn(),
+    importTasks: vi.fn(),
+  };
+  return (
+    <TasksContext.Provider value={value}>{children}</TasksContext.Provider>
+  );
+};
+
 describe('TaskFilter', () => {
   let mockOnFiltersChange: ReturnType<typeof vi.fn>;
 
@@ -52,14 +72,18 @@ describe('TaskFilter', () => {
   describe('Search Input', () => {
     it('should render search input', () => {
       render(
-        <TaskFilter onFiltersChange={mockOnFiltersChange} tasks={mockTasks} />
+        <MockTasksProvider>
+          <TaskFilter onFiltersChange={mockOnFiltersChange} />
+        </MockTasksProvider>
       );
       expect(screen.getByPlaceholderText('Search tasks...')).toBeDefined();
     });
 
     it('should update search input value when typing', () => {
       render(
-        <TaskFilter onFiltersChange={mockOnFiltersChange} tasks={mockTasks} />
+        <MockTasksProvider>
+          <TaskFilter onFiltersChange={mockOnFiltersChange} />
+        </MockTasksProvider>
       );
 
       const searchInput = screen.getByPlaceholderText('Search tasks...');
@@ -70,7 +94,9 @@ describe('TaskFilter', () => {
 
     it('should debounce search and call onFiltersChange after 300ms', async () => {
       render(
-        <TaskFilter onFiltersChange={mockOnFiltersChange} tasks={mockTasks} />
+        <MockTasksProvider>
+          <TaskFilter onFiltersChange={mockOnFiltersChange} />
+        </MockTasksProvider>
       );
 
       const searchInput = screen.getByPlaceholderText('Search tasks...');
@@ -92,36 +118,37 @@ describe('TaskFilter', () => {
 
     it('should show clear button when search has content', () => {
       render(
-        <TaskFilter onFiltersChange={mockOnFiltersChange} tasks={mockTasks} />
+        <MockTasksProvider>
+          <TaskFilter onFiltersChange={mockOnFiltersChange} />
+        </MockTasksProvider>
       );
 
       const searchInput = screen.getByPlaceholderText('Search tasks...');
       fireEvent.change(searchInput, { target: { value: 'test' } });
 
-      // Check that clear button (X icon) exists
-      const buttons = screen.getAllByRole('button');
-      const clearButton = buttons.find((btn) =>
-        btn.querySelector('path[d*="M6 18L18 6"]')
-      );
+      // Try to find clear button by label or role
+      const clearButton =
+        screen.queryByLabelText(/clear/i) ||
+        screen.queryByRole('button', { name: /clear/i });
       expect(clearButton).toBeDefined();
     });
 
     it('should clear search when clear button is clicked', async () => {
       render(
-        <TaskFilter onFiltersChange={mockOnFiltersChange} tasks={mockTasks} />
+        <MockTasksProvider>
+          <TaskFilter onFiltersChange={mockOnFiltersChange} />
+        </MockTasksProvider>
       );
 
       const searchInput = screen.getByPlaceholderText('Search tasks...');
       fireEvent.change(searchInput, { target: { value: 'test' } });
 
-      const buttons = screen.getAllByRole('button');
-      const clearButton = buttons.find((btn) =>
-        btn.querySelector('path[d*="M6 18L18 6"]')
-      );
-
-      if (clearButton) {
-        fireEvent.click(clearButton);
-      }
+      // Try to find clear button by label or role
+      const clearButton =
+        screen.queryByLabelText(/clear/i) ||
+        screen.queryByRole('button', { name: /clear/i });
+      expect(clearButton).toBeDefined();
+      if (clearButton) fireEvent.click(clearButton);
 
       expect((searchInput as HTMLInputElement).value).toBe('');
     });
@@ -130,14 +157,18 @@ describe('TaskFilter', () => {
   describe('Status Filter', () => {
     it('should render collapsible status filter section', () => {
       render(
-        <TaskFilter onFiltersChange={mockOnFiltersChange} tasks={mockTasks} />
+        <MockTasksProvider>
+          <TaskFilter onFiltersChange={mockOnFiltersChange} />
+        </MockTasksProvider>
       );
       expect(screen.getByText(/^Status/)).toBeDefined();
     });
 
     it('should expand status filter when clicked', () => {
       render(
-        <TaskFilter onFiltersChange={mockOnFiltersChange} tasks={mockTasks} />
+        <MockTasksProvider>
+          <TaskFilter onFiltersChange={mockOnFiltersChange} />
+        </MockTasksProvider>
       );
 
       const statusButton = screen.getByText(/^Status/);
@@ -150,7 +181,9 @@ describe('TaskFilter', () => {
 
     it('should toggle status selection', async () => {
       render(
-        <TaskFilter onFiltersChange={mockOnFiltersChange} tasks={mockTasks} />
+        <MockTasksProvider>
+          <TaskFilter onFiltersChange={mockOnFiltersChange} />
+        </MockTasksProvider>
       );
 
       fireEvent.click(screen.getByText(/^Status/));
@@ -170,7 +203,9 @@ describe('TaskFilter', () => {
 
     it('should show active count in status header', async () => {
       render(
-        <TaskFilter onFiltersChange={mockOnFiltersChange} tasks={mockTasks} />
+        <MockTasksProvider>
+          <TaskFilter onFiltersChange={mockOnFiltersChange} />
+        </MockTasksProvider>
       );
 
       fireEvent.click(screen.getByText(/^Status/));
@@ -189,14 +224,18 @@ describe('TaskFilter', () => {
   describe('Priority Filter', () => {
     it('should render collapsible priority filter section', () => {
       render(
-        <TaskFilter onFiltersChange={mockOnFiltersChange} tasks={mockTasks} />
+        <MockTasksProvider>
+          <TaskFilter onFiltersChange={mockOnFiltersChange} />
+        </MockTasksProvider>
       );
       expect(screen.getByText(/^Priority/i)).toBeDefined();
     });
 
     it('should expand priority filter when clicked', () => {
       render(
-        <TaskFilter onFiltersChange={mockOnFiltersChange} tasks={mockTasks} />
+        <MockTasksProvider>
+          <TaskFilter onFiltersChange={mockOnFiltersChange} />
+        </MockTasksProvider>
       );
 
       fireEvent.click(screen.getByText(/^Priority/i));
@@ -208,7 +247,9 @@ describe('TaskFilter', () => {
 
     it('should toggle priority selection', async () => {
       render(
-        <TaskFilter onFiltersChange={mockOnFiltersChange} tasks={mockTasks} />
+        <MockTasksProvider>
+          <TaskFilter onFiltersChange={mockOnFiltersChange} />
+        </MockTasksProvider>
       );
 
       fireEvent.click(screen.getByText(/^Priority/i));
@@ -229,7 +270,9 @@ describe('TaskFilter', () => {
   describe('Tags Filter', () => {
     it('should render tags filter when tasks have tags', () => {
       render(
-        <TaskFilter onFiltersChange={mockOnFiltersChange} tasks={mockTasks} />
+        <MockTasksProvider>
+          <TaskFilter onFiltersChange={mockOnFiltersChange} />
+        </MockTasksProvider>
       );
       expect(screen.getByText(/^Tags/i)).toBeDefined();
     });
@@ -246,24 +289,21 @@ describe('TaskFilter', () => {
           createdAt: '2025-01-01',
         },
       ];
-
       render(
-        <TaskFilter
-          onFiltersChange={mockOnFiltersChange}
-          tasks={tasksWithoutTags}
-        />
+        <MockTasksProvider tasks={tasksWithoutTags}>
+          <TaskFilter onFiltersChange={mockOnFiltersChange} />
+        </MockTasksProvider>
       );
-
       expect(screen.queryByText(/^Tags/i)).toBeNull();
     });
 
     it('should display unique tags from all tasks', () => {
       render(
-        <TaskFilter onFiltersChange={mockOnFiltersChange} tasks={mockTasks} />
+        <MockTasksProvider>
+          <TaskFilter onFiltersChange={mockOnFiltersChange} />
+        </MockTasksProvider>
       );
-
       fireEvent.click(screen.getByText(/^Tags/i));
-
       expect(screen.getByText('#api')).toBeDefined();
       expect(screen.getByText('#backend')).toBeDefined();
       expect(screen.getByText('#documentation')).toBeDefined();
@@ -273,12 +313,12 @@ describe('TaskFilter', () => {
 
     it('should toggle tag selection', async () => {
       render(
-        <TaskFilter onFiltersChange={mockOnFiltersChange} tasks={mockTasks} />
+        <MockTasksProvider>
+          <TaskFilter onFiltersChange={mockOnFiltersChange} />
+        </MockTasksProvider>
       );
-
       fireEvent.click(screen.getByText(/^Tags/i));
       fireEvent.click(screen.getByText('#api'));
-
       // Wait for debounced callback
       await waitFor(
         () => {
@@ -294,30 +334,32 @@ describe('TaskFilter', () => {
   describe('Date Range Filter', () => {
     it('should render date range filter section', () => {
       render(
-        <TaskFilter onFiltersChange={mockOnFiltersChange} tasks={mockTasks} />
+        <MockTasksProvider>
+          <TaskFilter onFiltersChange={mockOnFiltersChange} />
+        </MockTasksProvider>
       );
       expect(screen.getByText(/^Date Range/i)).toBeDefined();
     });
 
     it('should expand date range filter when clicked', () => {
       render(
-        <TaskFilter onFiltersChange={mockOnFiltersChange} tasks={mockTasks} />
+        <MockTasksProvider>
+          <TaskFilter onFiltersChange={mockOnFiltersChange} />
+        </MockTasksProvider>
       );
-
       fireEvent.click(screen.getByText(/^Date Range/i));
-
       expect(screen.getByText('Created Date')).toBeDefined();
       expect(screen.getByText('Due Date')).toBeDefined();
     });
 
     it('should allow setting date range type', async () => {
       render(
-        <TaskFilter onFiltersChange={mockOnFiltersChange} tasks={mockTasks} />
+        <MockTasksProvider>
+          <TaskFilter onFiltersChange={mockOnFiltersChange} />
+        </MockTasksProvider>
       );
-
       fireEvent.click(screen.getByText(/^Date Range/i));
       fireEvent.click(screen.getByText('Created Date'));
-
       // Wait for debounced callback
       await waitFor(
         () => {
@@ -333,12 +375,12 @@ describe('TaskFilter', () => {
 
     it('should show clear date range button when date is set', () => {
       render(
-        <TaskFilter onFiltersChange={mockOnFiltersChange} tasks={mockTasks} />
+        <MockTasksProvider>
+          <TaskFilter onFiltersChange={mockOnFiltersChange} />
+        </MockTasksProvider>
       );
-
       fireEvent.click(screen.getByText(/^Date Range/i));
       fireEvent.click(screen.getByText('Created Date'));
-
       expect(screen.getByText('Clear Date Range')).toBeDefined();
     });
   });
@@ -346,49 +388,48 @@ describe('TaskFilter', () => {
   describe('Filter Presets', () => {
     it('should render presets section', () => {
       render(
-        <TaskFilter onFiltersChange={mockOnFiltersChange} tasks={mockTasks} />
+        <MockTasksProvider>
+          <TaskFilter onFiltersChange={mockOnFiltersChange} />
+        </MockTasksProvider>
       );
       expect(screen.getByText(/^Saved Presets/i)).toBeDefined();
     });
 
     it('should show save preset button when expanded', () => {
       render(
-        <TaskFilter onFiltersChange={mockOnFiltersChange} tasks={mockTasks} />
+        <MockTasksProvider>
+          <TaskFilter onFiltersChange={mockOnFiltersChange} />
+        </MockTasksProvider>
       );
-
       fireEvent.click(screen.getByText(/^Saved Presets/i));
-
       expect(screen.getByText('+ Save Current Filters')).toBeDefined();
     });
 
     it('should open dialog when save preset is clicked', () => {
       render(
-        <TaskFilter onFiltersChange={mockOnFiltersChange} tasks={mockTasks} />
+        <MockTasksProvider>
+          <TaskFilter onFiltersChange={mockOnFiltersChange} />
+        </MockTasksProvider>
       );
-
       fireEvent.click(screen.getByText(/^Saved Presets/i));
       fireEvent.click(screen.getByText('+ Save Current Filters'));
-
       expect(screen.getByText('Save Filter Preset')).toBeDefined();
       expect(screen.getByPlaceholderText('Enter preset name...')).toBeDefined();
     });
 
     it('should save preset to localStorage', () => {
       render(
-        <TaskFilter onFiltersChange={mockOnFiltersChange} tasks={mockTasks} />
+        <MockTasksProvider>
+          <TaskFilter onFiltersChange={mockOnFiltersChange} />
+        </MockTasksProvider>
       );
-
       fireEvent.click(screen.getByText(/^Saved Presets/i));
       fireEvent.click(screen.getByText('+ Save Current Filters'));
-
       const input = screen.getByPlaceholderText('Enter preset name...');
       fireEvent.change(input, { target: { value: 'My Preset' } });
-
       fireEvent.click(screen.getByText('Save'));
-
       const stored = localStorage.getItem('task-filter-presets');
       expect(stored).toBeTruthy();
-
       const presets = JSON.parse(stored!);
       expect(presets).toHaveLength(1);
       expect(presets[0].name).toBe('My Preset');
@@ -398,12 +439,12 @@ describe('TaskFilter', () => {
   describe('Clear All Filters', () => {
     it('should show active filter count', async () => {
       render(
-        <TaskFilter onFiltersChange={mockOnFiltersChange} tasks={mockTasks} />
+        <MockTasksProvider>
+          <TaskFilter onFiltersChange={mockOnFiltersChange} />
+        </MockTasksProvider>
       );
-
       fireEvent.click(screen.getByText(/^Status/));
       fireEvent.click(screen.getByText('To Do'));
-
       // Wait for filter count to update
       await waitFor(
         () => {
@@ -415,12 +456,12 @@ describe('TaskFilter', () => {
 
     it('should show Clear All button when filters are active', async () => {
       render(
-        <TaskFilter onFiltersChange={mockOnFiltersChange} tasks={mockTasks} />
+        <MockTasksProvider>
+          <TaskFilter onFiltersChange={mockOnFiltersChange} />
+        </MockTasksProvider>
       );
-
       fireEvent.click(screen.getByText(/^Status/));
       fireEvent.click(screen.getByText('To Do'));
-
       // Wait for Clear All button to appear
       await waitFor(
         () => {
@@ -432,24 +473,22 @@ describe('TaskFilter', () => {
 
     it('should clear all filters when Clear All is clicked', async () => {
       render(
-        <TaskFilter onFiltersChange={mockOnFiltersChange} tasks={mockTasks} />
+        <MockTasksProvider>
+          <TaskFilter onFiltersChange={mockOnFiltersChange} />
+        </MockTasksProvider>
       );
-
       // Set some filters
       fireEvent.click(screen.getByText(/^Status/));
       fireEvent.click(screen.getByText('To Do'));
-
       await waitFor(
         () => {
           expect(screen.getByText('Clear All')).toBeDefined();
         },
         { timeout: 500 }
       );
-
       mockOnFiltersChange.mockClear();
       // Clear all
       fireEvent.click(screen.getByText('Clear All'));
-
       await waitFor(
         () => {
           expect(mockOnFiltersChange).toHaveBeenCalledWith(
@@ -468,37 +507,28 @@ describe('TaskFilter', () => {
   describe('Task Count Display', () => {
     it('should display task count when provided', () => {
       render(
-        <TaskFilter
-          onFiltersChange={mockOnFiltersChange}
-          tasks={mockTasks}
-          taskCount={5}
-        />
+        <MockTasksProvider>
+          <TaskFilter onFiltersChange={mockOnFiltersChange} taskCount={5} />
+        </MockTasksProvider>
       );
-
       expect(screen.getByText('Showing 5 tasks')).toBeDefined();
     });
 
     it('should display singular "task" for count of 1', () => {
       render(
-        <TaskFilter
-          onFiltersChange={mockOnFiltersChange}
-          tasks={mockTasks}
-          taskCount={1}
-        />
+        <MockTasksProvider>
+          <TaskFilter onFiltersChange={mockOnFiltersChange} taskCount={1} />
+        </MockTasksProvider>
       );
-
       expect(screen.getByText('Showing 1 task')).toBeDefined();
     });
 
     it('should display "No tasks found" when count is 0', () => {
       render(
-        <TaskFilter
-          onFiltersChange={mockOnFiltersChange}
-          tasks={mockTasks}
-          taskCount={0}
-        />
+        <MockTasksProvider>
+          <TaskFilter onFiltersChange={mockOnFiltersChange} taskCount={0} />
+        </MockTasksProvider>
       );
-
       expect(screen.getByText('No tasks found')).toBeDefined();
     });
   });

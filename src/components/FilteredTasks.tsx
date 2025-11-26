@@ -1,18 +1,18 @@
 import React, { useMemo } from 'react';
 import { Task } from '../types/task';
 import { TaskFilters } from '../types/filter';
+import { useTasksContext } from '../context/TasksContext';
 
 interface FilteredTasksProps {
-  tasks: Task[];
   filters: TaskFilters;
   children: (filteredTasks: Task[]) => React.ReactNode;
 }
 
 export const FilteredTasks: React.FC<FilteredTasksProps> = ({
-  tasks,
   filters,
   children,
 }) => {
+  const { tasks } = useTasksContext();
   const filteredTasks = useMemo(() => {
     const hasStatusFilter = filters.statuses.length > 0;
     const hasSearchFilter = filters.searchQuery.length > 0;

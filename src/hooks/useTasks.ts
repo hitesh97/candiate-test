@@ -1,5 +1,12 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
-import { Task } from '../types/task';
+import {
+  AddTaskFn,
+  UpdateTaskFn,
+  DeleteTaskFn,
+  ImportTasksFn,
+  DuplicateTaskFn,
+  Task,
+} from '../types/task';
 import { loadTasksFromStorage, saveTasksToStorage } from '../utils/taskHelpers';
 
 export const useTasks = () => {
@@ -30,7 +37,7 @@ export const useTasks = () => {
 
   // All mutator functions are defined inside useMemo for referential stability
   const value = useMemo(() => {
-    const addTask = (newTask: Omit<Task, 'id' | 'createdAt'>) => {
+    const addTask: AddTaskFn = (newTask) => {
       const task: Task = {
         ...newTask,
         id: crypto.randomUUID(),
@@ -39,20 +46,17 @@ export const useTasks = () => {
       setTasks((prev) => [...prev, task]);
     };
 
-    const updateTask = (
-      id: string,
-      updates: Partial<Omit<Task, 'id' | 'createdAt'>>
-    ) => {
+    const updateTask: UpdateTaskFn = (id, updates) => {
       setTasks((prev) =>
         prev.map((task) => (task.id === id ? { ...task, ...updates } : task))
       );
     };
 
-    const deleteTask = (id: string) => {
+    const deleteTask: DeleteTaskFn = (id) => {
       setTasks((prev) => prev.filter((task) => task.id !== id));
     };
 
-    const duplicateTask = (id: string) => {
+    const duplicateTask: DuplicateTaskFn = (id) => {
       setTasks((prev) => {
         const taskToDuplicate = prev.find((task) => task.id === id);
         if (!taskToDuplicate) return prev;
@@ -68,7 +72,7 @@ export const useTasks = () => {
       });
     };
 
-    const importTasks = (importedTasks: Task[]) => {
+    const importTasks: ImportTasksFn = (importedTasks) => {
       setTasks((prev) => {
         // Generate new IDs for all imported tasks
         const tasksWithNewIds = importedTasks.map((task) => ({

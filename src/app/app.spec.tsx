@@ -664,15 +664,12 @@ describe('App', () => {
       expect(screen.getByPlaceholderText('Enter task title')).toBeDefined();
     });
 
-    // Button text should change to Cancel - verify by finding the unique button with specific class
-    const buttons = screen.getAllByRole('button', { name: /cancel/i });
-    const topCancelButton = buttons.find((btn) =>
-      btn.className.includes('bg-blue-500')
-    );
-    expect(topCancelButton).toBeDefined();
+    // Button text should change to Cancel - find by role and name
+    const cancelButton = screen.getByRole('button', { name: /cancel/i });
+    expect(cancelButton).toBeDefined();
 
-    // Click the top-level Cancel button
-    await user.click(topCancelButton!);
+    // Click the Cancel button
+    await user.click(cancelButton);
 
     // Form should disappear
     await waitFor(() => {

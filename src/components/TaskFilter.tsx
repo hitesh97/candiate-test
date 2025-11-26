@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { StatusFilter, StatusFilterProps } from './filters/StatusFilter';
+import { useTasksContext } from '../context/TasksContext';
 import { PriorityFilter, PriorityFilterProps } from './filters/PriorityFilter';
 import { TaskStatus, TaskPriority, Task } from '../types/task';
 import { TaskFilters, FilterPreset, DEFAULT_FILTERS } from '../types/filter';
@@ -13,17 +14,13 @@ import { SearchInput } from './filters/SearchInput';
 
 interface TaskFilterProps {
   onFiltersChange: (filters: TaskFilters) => void;
-  tasks: Task[];
   taskCount?: number;
 }
 
 const PRESETS_KEY = 'task-filter-presets';
 
-export const TaskFilter = ({
-  onFiltersChange,
-  tasks,
-  taskCount,
-}: TaskFilterProps) => {
+export const TaskFilter = ({ onFiltersChange, taskCount }: TaskFilterProps) => {
+  const { tasks } = useTasksContext();
   // Split state by filter section
   const [statuses, setStatuses] = useState<TaskStatus[]>(
     DEFAULT_FILTERS.statuses

@@ -130,11 +130,14 @@ describe('useTasks', () => {
       expect(result.current.tasks).toHaveLength(1);
     });
 
-    expect(result.current.tasks[0]).toEqual({
+    expect(result.current.tasks[0]).toMatchObject({
       ...newTask,
-      id: '1234567890',
       createdAt: '2025-01-01T00:00:00.000Z',
     });
+    // UUID v4 regex
+    expect(result.current.tasks[0].id).toMatch(
+      /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+    );
 
     dateSpy.mockRestore();
     isoSpy.mockRestore();
@@ -679,7 +682,10 @@ describe('useTasks', () => {
 
       // Check that id and createdAt are new
       expect(duplicatedTask.id).not.toBe('1');
-      expect(duplicatedTask.id).toContain(mockTimestamp.toString());
+      // UUID v4 regex: /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+      expect(duplicatedTask.id).toMatch(
+        /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+      );
       expect(duplicatedTask.createdAt).toBe('2025-11-20T12:00:00.000Z');
       expect(duplicatedTask.createdAt).not.toBe('2025-01-01T00:00:00.000Z');
     });

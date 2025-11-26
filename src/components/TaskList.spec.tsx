@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import { TaskList } from './TaskList';
+import { TasksProvider } from '../context/TasksContext';
 import { Task } from '../types/task';
 
 describe('TaskList', () => {
@@ -47,14 +48,16 @@ describe('TaskList', () => {
 
   it('should render all tasks when filter is "all"', () => {
     render(
-      <TaskList
-        tasks={mockTasks}
-        sortBy="createdAt"
-        sortOrder="desc"
-        onUpdateTask={mockOnUpdateTask}
-        onDeleteTask={mockOnDeleteTask}
-        onDuplicateTask={vi.fn()}
-      />
+      <TasksProvider>
+        <TaskList
+          tasks={mockTasks}
+          sortBy="createdAt"
+          sortOrder="desc"
+          onUpdateTask={mockOnUpdateTask}
+          onDeleteTask={mockOnDeleteTask}
+          onDuplicateTask={vi.fn()}
+        />
+      </TasksProvider>
     );
 
     expect(screen.getByText('First Task')).toBeDefined();
@@ -65,14 +68,16 @@ describe('TaskList', () => {
   it('should render only todo tasks when filter is "todo"', () => {
     const todoTasks = mockTasks.filter((t) => t.status === 'todo');
     render(
-      <TaskList
-        tasks={todoTasks}
-        sortBy="createdAt"
-        sortOrder="desc"
-        onUpdateTask={mockOnUpdateTask}
-        onDeleteTask={mockOnDeleteTask}
-        onDuplicateTask={vi.fn()}
-      />
+      <TasksProvider>
+        <TaskList
+          tasks={todoTasks}
+          sortBy="createdAt"
+          sortOrder="desc"
+          onUpdateTask={mockOnUpdateTask}
+          onDeleteTask={mockOnDeleteTask}
+          onDuplicateTask={vi.fn()}
+        />
+      </TasksProvider>
     );
 
     expect(screen.getByText('First Task')).toBeDefined();
@@ -83,14 +88,16 @@ describe('TaskList', () => {
   it('should render only in-progress tasks when filter is "in-progress"', () => {
     const inProgressTasks = mockTasks.filter((t) => t.status === 'in-progress');
     render(
-      <TaskList
-        tasks={inProgressTasks}
-        sortBy="createdAt"
-        sortOrder="desc"
-        onUpdateTask={mockOnUpdateTask}
-        onDeleteTask={mockOnDeleteTask}
-        onDuplicateTask={vi.fn()}
-      />
+      <TasksProvider>
+        <TaskList
+          tasks={inProgressTasks}
+          sortBy="createdAt"
+          sortOrder="desc"
+          onUpdateTask={mockOnUpdateTask}
+          onDeleteTask={mockOnDeleteTask}
+          onDuplicateTask={vi.fn()}
+        />
+      </TasksProvider>
     );
 
     expect(screen.queryByText('First Task')).toBeNull();
@@ -101,14 +108,16 @@ describe('TaskList', () => {
   it('should render only done tasks when filter is "done"', () => {
     const doneTasks = mockTasks.filter((t) => t.status === 'done');
     render(
-      <TaskList
-        tasks={doneTasks}
-        sortBy="createdAt"
-        sortOrder="desc"
-        onUpdateTask={mockOnUpdateTask}
-        onDeleteTask={mockOnDeleteTask}
-        onDuplicateTask={vi.fn()}
-      />
+      <TasksProvider>
+        <TaskList
+          tasks={doneTasks}
+          sortBy="createdAt"
+          sortOrder="desc"
+          onUpdateTask={mockOnUpdateTask}
+          onDeleteTask={mockOnDeleteTask}
+          onDuplicateTask={vi.fn()}
+        />
+      </TasksProvider>
     );
 
     expect(screen.queryByText('First Task')).toBeNull();
@@ -121,14 +130,16 @@ describe('TaskList', () => {
       t.title.toLowerCase().includes('first')
     );
     render(
-      <TaskList
-        tasks={searchedTasks}
-        sortBy="createdAt"
-        sortOrder="desc"
-        onUpdateTask={mockOnUpdateTask}
-        onDeleteTask={mockOnDeleteTask}
-        onDuplicateTask={vi.fn()}
-      />
+      <TasksProvider>
+        <TaskList
+          tasks={searchedTasks}
+          sortBy="createdAt"
+          sortOrder="desc"
+          onUpdateTask={mockOnUpdateTask}
+          onDeleteTask={mockOnDeleteTask}
+          onDuplicateTask={vi.fn()}
+        />
+      </TasksProvider>
     );
 
     expect(screen.getByText('First Task')).toBeDefined();
@@ -141,14 +152,16 @@ describe('TaskList', () => {
       t.description.toLowerCase().includes('second')
     );
     render(
-      <TaskList
-        tasks={searchedTasks}
-        sortBy="createdAt"
-        sortOrder="desc"
-        onUpdateTask={mockOnUpdateTask}
-        onDeleteTask={mockOnDeleteTask}
-        onDuplicateTask={vi.fn()}
-      />
+      <TasksProvider>
+        <TaskList
+          tasks={searchedTasks}
+          sortBy="createdAt"
+          sortOrder="desc"
+          onUpdateTask={mockOnUpdateTask}
+          onDeleteTask={mockOnDeleteTask}
+          onDuplicateTask={vi.fn()}
+        />
+      </TasksProvider>
     );
 
     expect(screen.queryByText('First Task')).toBeNull();
@@ -158,14 +171,16 @@ describe('TaskList', () => {
 
   it('should show "No tasks yet" message when tasks array is empty', () => {
     render(
-      <TaskList
-        tasks={[]}
-        sortBy="createdAt"
-        sortOrder="desc"
-        onUpdateTask={mockOnUpdateTask}
-        onDeleteTask={mockOnDeleteTask}
-        onDuplicateTask={vi.fn()}
-      />
+      <TasksProvider>
+        <TaskList
+          tasks={[]}
+          sortBy="createdAt"
+          sortOrder="desc"
+          onUpdateTask={mockOnUpdateTask}
+          onDeleteTask={mockOnDeleteTask}
+          onDuplicateTask={vi.fn()}
+        />
+      </TasksProvider>
     );
 
     expect(screen.getByText('No tasks yet')).toBeDefined();
@@ -176,14 +191,16 @@ describe('TaskList', () => {
 
   it('should show "No tasks match" message when search has no results', () => {
     render(
-      <TaskList
-        tasks={[]}
-        sortBy="createdAt"
-        sortOrder="desc"
-        onUpdateTask={mockOnUpdateTask}
-        onDeleteTask={mockOnDeleteTask}
-        onDuplicateTask={vi.fn()}
-      />
+      <TasksProvider>
+        <TaskList
+          tasks={[]}
+          sortBy="createdAt"
+          sortOrder="desc"
+          onUpdateTask={mockOnUpdateTask}
+          onDeleteTask={mockOnDeleteTask}
+          onDuplicateTask={vi.fn()}
+        />
+      </TasksProvider>
     );
 
     // Empty array shows "No tasks yet"
@@ -196,14 +213,16 @@ describe('TaskList', () => {
   it('should show "No tasks with status" message when filter has no results', () => {
     // Pass empty array to simulate filtered-out results
     render(
-      <TaskList
-        tasks={[]}
-        sortBy="createdAt"
-        sortOrder="desc"
-        onUpdateTask={mockOnUpdateTask}
-        onDeleteTask={mockOnDeleteTask}
-        onDuplicateTask={vi.fn()}
-      />
+      <TasksProvider>
+        <TaskList
+          tasks={[]}
+          sortBy="createdAt"
+          sortOrder="desc"
+          onUpdateTask={mockOnUpdateTask}
+          onDeleteTask={mockOnDeleteTask}
+          onDuplicateTask={vi.fn()}
+        />
+      </TasksProvider>
     );
 
     // Empty array shows "No tasks yet"
@@ -214,15 +233,22 @@ describe('TaskList', () => {
   });
 
   it('should sort tasks by created date in descending order by default', () => {
+    // Sort mockTasks by createdAt descending
+    const sorted = [...mockTasks].sort(
+      (a, b) =>
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
     render(
-      <TaskList
-        tasks={mockTasks}
-        sortBy="createdAt"
-        sortOrder="desc"
-        onUpdateTask={mockOnUpdateTask}
-        onDeleteTask={mockOnDeleteTask}
-        onDuplicateTask={vi.fn()}
-      />
+      <TasksProvider>
+        <TaskList
+          tasks={sorted}
+          sortBy="createdAt"
+          sortOrder="desc"
+          onUpdateTask={mockOnUpdateTask}
+          onDeleteTask={mockOnDeleteTask}
+          onDuplicateTask={vi.fn()}
+        />
+      </TasksProvider>
     );
 
     const taskTitles = screen
@@ -238,14 +264,16 @@ describe('TaskList', () => {
 
   it('should sort tasks by title alphabetically when sortBy="title" prop passed', () => {
     render(
-      <TaskList
-        tasks={mockTasks}
-        sortBy="title"
-        sortOrder="asc"
-        onUpdateTask={mockOnUpdateTask}
-        onDeleteTask={mockOnDeleteTask}
-        onDuplicateTask={vi.fn()}
-      />
+      <TasksProvider>
+        <TaskList
+          tasks={mockTasks}
+          sortBy="title"
+          sortOrder="asc"
+          onUpdateTask={mockOnUpdateTask}
+          onDeleteTask={mockOnDeleteTask}
+          onDuplicateTask={vi.fn()}
+        />
+      </TasksProvider>
     );
 
     const taskTitles = screen
@@ -260,14 +288,16 @@ describe('TaskList', () => {
 
   it('should sort tasks by priority when sortBy="priority" prop passed', () => {
     render(
-      <TaskList
-        tasks={mockTasks}
-        sortBy="priority"
-        sortOrder="desc"
-        onUpdateTask={mockOnUpdateTask}
-        onDeleteTask={mockOnDeleteTask}
-        onDuplicateTask={vi.fn()}
-      />
+      <TasksProvider>
+        <TaskList
+          tasks={mockTasks}
+          sortBy="priority"
+          sortOrder="desc"
+          onUpdateTask={mockOnUpdateTask}
+          onDeleteTask={mockOnDeleteTask}
+          onDuplicateTask={vi.fn()}
+        />
+      </TasksProvider>
     );
 
     const taskTitles = screen
@@ -282,15 +312,23 @@ describe('TaskList', () => {
   });
 
   it('should sort tasks by due date when sortBy="dueDate" prop passed', () => {
+    // Sort mockTasks by dueDate ascending (undefined = Infinity)
+    const sorted = [...mockTasks].sort((a, b) => {
+      const aDate = a.dueDate ? new Date(a.dueDate).getTime() : Infinity;
+      const bDate = b.dueDate ? new Date(b.dueDate).getTime() : Infinity;
+      return aDate - bDate;
+    });
     render(
-      <TaskList
-        tasks={mockTasks}
-        sortBy="dueDate"
-        sortOrder="asc"
-        onUpdateTask={mockOnUpdateTask}
-        onDeleteTask={mockOnDeleteTask}
-        onDuplicateTask={vi.fn()}
-      />
+      <TasksProvider>
+        <TaskList
+          tasks={sorted}
+          sortBy="dueDate"
+          sortOrder="asc"
+          onUpdateTask={mockOnUpdateTask}
+          onDeleteTask={mockOnDeleteTask}
+          onDuplicateTask={vi.fn()}
+        />
+      </TasksProvider>
     );
 
     const taskTitles = screen
@@ -306,14 +344,16 @@ describe('TaskList', () => {
 
   it('should pass onUpdateTask callback to TaskCard components', () => {
     render(
-      <TaskList
-        tasks={mockTasks}
-        sortBy="createdAt"
-        sortOrder="desc"
-        onUpdateTask={mockOnUpdateTask}
-        onDeleteTask={mockOnDeleteTask}
-        onDuplicateTask={vi.fn()}
-      />
+      <TasksProvider>
+        <TaskList
+          tasks={mockTasks}
+          sortBy="createdAt"
+          sortOrder="desc"
+          onUpdateTask={mockOnUpdateTask}
+          onDeleteTask={mockOnDeleteTask}
+          onDuplicateTask={vi.fn()}
+        />
+      </TasksProvider>
     );
 
     // Verify TaskCard components are rendered (they would receive the callbacks)
@@ -328,14 +368,16 @@ describe('TaskList', () => {
       (t) => t.status === 'todo' && t.title.toLowerCase().includes('first')
     );
     render(
-      <TaskList
-        tasks={filteredTasks}
-        sortBy="createdAt"
-        sortOrder="desc"
-        onUpdateTask={mockOnUpdateTask}
-        onDeleteTask={mockOnDeleteTask}
-        onDuplicateTask={vi.fn()}
-      />
+      <TasksProvider>
+        <TaskList
+          tasks={filteredTasks}
+          sortBy="createdAt"
+          sortOrder="desc"
+          onUpdateTask={mockOnUpdateTask}
+          onDeleteTask={mockOnDeleteTask}
+          onDuplicateTask={vi.fn()}
+        />
+      </TasksProvider>
     );
 
     // Only "First Task" is todo AND matches "first"
@@ -347,14 +389,16 @@ describe('TaskList', () => {
   it('should show no results when filter and search do not match any tasks', () => {
     // Pass empty array to simulate no matches
     render(
-      <TaskList
-        tasks={[]}
-        sortBy="createdAt"
-        sortOrder="desc"
-        onUpdateTask={mockOnUpdateTask}
-        onDeleteTask={mockOnDeleteTask}
-        onDuplicateTask={vi.fn()}
-      />
+      <TasksProvider>
+        <TaskList
+          tasks={[]}
+          sortBy="createdAt"
+          sortOrder="desc"
+          onUpdateTask={mockOnUpdateTask}
+          onDeleteTask={mockOnDeleteTask}
+          onDuplicateTask={vi.fn()}
+        />
+      </TasksProvider>
     );
 
     // Empty array shows "No tasks yet"
@@ -363,11 +407,13 @@ describe('TaskList', () => {
 
   it('should render tasks in grid layout', () => {
     const { container } = render(
-      <TaskList
-        tasks={mockTasks}
-        onUpdateTask={mockOnUpdateTask}
-        onDeleteTask={mockOnDeleteTask}
-      />
+      <TasksProvider>
+        <TaskList
+          tasks={mockTasks}
+          onUpdateTask={mockOnUpdateTask}
+          onDeleteTask={mockOnDeleteTask}
+        />
+      </TasksProvider>
     );
 
     const gridContainer = container.querySelector('.grid');

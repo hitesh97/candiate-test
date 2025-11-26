@@ -3,6 +3,11 @@ import userEvent from '@testing-library/user-event';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { Pagination } from './Pagination';
 
+// Mock window.scrollTo for jsdom
+beforeAll(() => {
+  Object.defineProperty(window, 'scrollTo', { value: vi.fn(), writable: true });
+});
+
 describe('Pagination', () => {
   const mockOnPaginate = vi.fn();
 

@@ -1,12 +1,17 @@
-import { Task, TaskStatus, TaskPriority } from '../types/task';
+import {
+  Task,
+  TaskStatus,
+  TaskPriority,
+  NewTaskInputType,
+} from '../types/task';
 import React, { useState, useActionState } from 'react';
 import { TagPill } from './TagPill';
 
-interface TaskFormProps {
-  onSubmit: (task: Omit<Task, 'id' | 'createdAt'>) => void;
+type TaskFormProps = {
+  onSubmit: (task: NewTaskInputType) => void;
   initialTask?: Task;
   onCancel?: () => void;
-}
+};
 
 interface FormState {
   errors: {

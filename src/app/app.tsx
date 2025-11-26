@@ -1,14 +1,15 @@
-import { useState, useMemo } from 'react';
-import { useTasks } from '../hooks/useTasks';
-import { TaskForm } from '../components/TaskForm';
-import { TaskList } from '../components/TaskList';
+import { useState } from 'react';
+import { TasksProvider, useTasksContext } from '../context/TasksContext';
+import { AddTaskDialog } from '../components/AddTaskDialog';
+import { EditTaskDialog } from '../components/EditTaskDialog';
+import { TaskListContainer } from '../components/TaskListContainer';
 import { FilteredTasks } from '../components/FilteredTasks';
 import { TaskFilter } from '../components/TaskFilter';
 import { TaskSorting } from '../components/TaskSorting';
-import { TaskStatistics } from '../components/TaskStatistics';
+import { TaskStatisticsContainer } from '../components/TaskStatisticsContainer';
+import { Footer } from '../components/Footer';
 import { TaskActions } from '../components/TaskActions';
-import { Dialog } from '../components/Dialog';
-import { Task } from '../types/task';
+import { NewTaskInputType, Task } from '../types/task';
 import { TaskFilters, DEFAULT_FILTERS } from '../types/filter';
 import {
   downloadTasksAsJSON,
@@ -16,17 +17,9 @@ import {
 } from '../utils/exportHelpers';
 import { importTasksFromFile } from '../utils/importHelpers';
 
-export function App() {
-  const {
-    tasks,
-    loading,
-    addTask,
-    updateTask,
-    deleteTask,
-    duplicateTask,
-    importTasks,
-  } = useTasks();
-  const [showForm, setShowForm] = useState(false);
+function AppContent() {
+  const { tasks, loading, addTask, updateTask, importTasks } =
+    useTasksContext();
   const [filters, setFilters] = useState<TaskFilters>(DEFAULT_FILTERS);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [showExportMenu, setShowExportMenu] = useState(false);
@@ -34,26 +27,11 @@ export function App() {
     type: 'success' | 'error';
     text: string;
   } | null>(null);
-  // Sort state is now managed in TaskSorting
+  const [showAddDialog, setShowAddDialog] = useState(false);
   const [sortBy, setSortBy] = useState<
     'createdAt' | 'dueDate' | 'priority' | 'title'
   >('createdAt');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
-
-  const stats = useMemo(() => {
-    const total = tasks.length;
-    const todo = tasks.filter((t) => t.status === 'todo').length;
-    const inProgress = tasks.filter((t) => t.status === 'in-progress').length;
-    const done = tasks.filter((t) => t.status === 'done').length;
-
-    return {
-      total,
-      todo,
-      inProgress,
-      done,
-      completionRate: total > 0 ? (done / total) * 100 : 0,
-    };
-  }, [tasks]);
 
   // Filtering is now handled by FilteredTasks component
   // filteredTaskCount will be derived in render
@@ -62,7 +40,7 @@ export function App() {
     setEditingTask(task);
   };
 
-  const handleEditSubmit = (updatedTask: Omit<Task, 'id' | 'createdAt'>) => {
+  const handleEditSubmit = (updatedTask: NewTaskInputType) => {
     if (editingTask) {
       updateTask(editingTask.id, updatedTask);
       setEditingTask(null);
@@ -129,38 +107,30 @@ export function App() {
         )}
 
         {/* Statistics Dashboard */}
-        <TaskStatistics
-          total={stats.total}
-          todo={stats.todo}
-          inProgress={stats.inProgress}
-          done={stats.done}
-        />
+        <TaskStatisticsContainer />
 
         {/* Task Actions */}
         <TaskActions
-          showForm={showForm}
           showExportMenu={showExportMenu}
           importMessage={importMessage}
-          onToggleForm={() => setShowForm(!showForm)}
           onToggleExportMenu={() => setShowExportMenu(!showExportMenu)}
           onExportJSON={handleExportJSON}
           onExportCSV={handleExportCSV}
           onImportClick={handleImportClick}
           onFileImport={handleFileImport}
           onCloseImportMessage={() => setImportMessage(null)}
+          onAddTaskClick={() => setShowAddDialog(true)}
         />
 
-        {/* Task Form */}
-        {showForm && (
-          <div className="mb-6">
-            <TaskForm
-              onSubmit={(task) => {
-                addTask(task);
-                setShowForm(false);
-              }}
-              onCancel={() => setShowForm(false)}
-            />
-          </div>
+        {/* Add Task Dialog */}
+        {showAddDialog && (
+          <AddTaskDialog
+            onAddTask={(task) => {
+              addTask(task);
+              setShowAddDialog(false);
+            }}
+            onCancel={() => setShowAddDialog(false)}
+          />
         )}
 
         {/* Filter and Task List Section */}
@@ -175,20 +145,17 @@ export function App() {
                 setSortOrder(newSortOrder);
               }}
             />
-            <TaskFilter onFiltersChange={setFilters} tasks={tasks} />
+            <TaskFilter onFiltersChange={setFilters} />
           </div>
 
           {/* Task List */}
           <div className="flex-1">
-            <FilteredTasks tasks={tasks} filters={filters}>
+            <FilteredTasks filters={filters}>
               {(filteredTasks) => (
-                <TaskList
+                <TaskListContainer
                   tasks={filteredTasks}
                   sortBy={sortBy}
                   sortOrder={sortOrder}
-                  onUpdateTask={updateTask}
-                  onDeleteTask={deleteTask}
-                  onDuplicateTask={duplicateTask}
                   onEditTask={handleEditTask}
                 />
               )}
@@ -198,30 +165,21 @@ export function App() {
       </main>
 
       {/* Edit Task Dialog */}
-      <Dialog
-        isOpen={editingTask !== null}
+      <EditTaskDialog
+        editingTask={editingTask}
+        onEditSubmit={handleEditSubmit}
         onClose={() => setEditingTask(null)}
-        title="Edit Task"
-      >
-        {editingTask && (
-          <TaskForm
-            key={editingTask.id}
-            initialTask={editingTask}
-            onSubmit={handleEditSubmit}
-            onCancel={() => setEditingTask(null)}
-          />
-        )}
-      </Dialog>
+      />
 
-      <footer className="bg-gray-800 text-white p-4 mt-12">
-        <div className="container mx-auto text-center">
-          <p className="text-sm font-medium text-gray-300">
-            Task Management System - Technical Test © 2025
-          </p>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }
 
-export default App;
+export default function App() {
+  return (
+    <TasksProvider>
+      <AppContent />
+    </TasksProvider>
+  );
+}
