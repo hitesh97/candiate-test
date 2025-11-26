@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { StatusFilter, StatusFilterProps } from './filters/StatusFilter';
 import { useTasksContext } from '../context/TasksContext';
 import { PriorityFilter, PriorityFilterProps } from './filters/PriorityFilter';
-import { TaskStatus, TaskPriority, Task } from '../types/task';
+import { TaskStatus, TaskPriority } from '../types/task';
 import { TaskFilters, FilterPreset, DEFAULT_FILTERS } from '../types/filter';
 import { TagsFilter, TagsFilterProps } from './filters/TagsFilter';
 import {
@@ -180,9 +180,12 @@ export const TaskFilter = ({ onFiltersChange, taskCount }: TaskFilterProps) => {
     [presets]
   );
 
-  const toggleSection = (section: keyof typeof expandedSections) => {
-    setExpandedSections((prev) => ({ ...prev, [section]: !prev[section] }));
-  };
+  const toggleSection = useCallback(
+    (section: keyof typeof expandedSections) => {
+      setExpandedSections((prev) => ({ ...prev, [section]: !prev[section] }));
+    },
+    []
+  );
 
   const activeFilterCount = (() => {
     let count = 0;
